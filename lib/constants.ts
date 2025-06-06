@@ -40,23 +40,53 @@ export const SAMPLE_PROJECTS: Project[] = [
     description: "Electronic dance collaboration",
     collaborators: [SAMPLE_USERS[0], SAMPLE_USERS[1], SAMPLE_USERS[2]],
     tracks: [
-      { id: "1", name: "Main Track", duration: "3:24", color: "bg-[#E41E26]", audioUrl: "https://upload.wikimedia.org/wikipedia/commons/2/28/SampleAudio_0.4mb.mp3" },
-      { id: "2", name: "Vocals", duration: "3:24", color: "bg-[#1C3F95]", audioUrl: "https://www.learningcontainer.com/wp-content/uploads/2020/02/Kalimba.mp3" },
-      { id: "3", name: "Bass", duration: "3:24", color: "bg-[#FFD500]", audioUrl: "https://file-examples.com/storage/fe8c7eef0c6364f6c9504cc/2017/11/file_example_MP3_700KB.mp3" },
+      {
+        id: "track-1",
+        name: "Main Track",
+        duration: "3:45",
+        color: "bg-[#1C3F95]",
+        audioUrl: "/audio/sample-audio.wav"
+      },
+      {
+        id: "track-2",
+        name: "Vocals",
+        duration: "3:45",
+        color: "bg-[#E31E24]",
+        audioUrl: "/audio/sample-audio.mp3"
+      },
+      {
+        id: "track-3",
+        name: "Bass",
+        duration: "3:45",
+        color: "bg-[#FFD500]",
+        audioUrl: "/audio/sample-audio.mp3"
+      }
     ],
-    tags: ["electronic", "dance", "summer"],
+    tags: ["electronic", "dance"],
     lastUpdated: "2024-01-15",
-    version: "v2.1",
-    color: "bg-[#E41E26]",
+    version: "v1.0",
+    color: "bg-[#1C3F95]",
   },
   {
     id: "2",
     title: "Acoustic Sessions",
-    description: "Unplugged versions of popular tracks",
-    collaborators: [SAMPLE_USERS[0], SAMPLE_USERS[2]],
+    description: "Unplugged acoustic set",
+    collaborators: [SAMPLE_USERS[2], SAMPLE_USERS[3]],
     tracks: [
-      { id: "4", name: "Acoustic Guitar", duration: "4:12", color: "bg-[#1C3F95]", audioUrl: "https://download.samplelib.com/mp3/sample-12s.mp3" },
-      { id: "5", name: "Vocals", duration: "4:12", color: "bg-[#FFD500]", audioUrl: "https://download.samplelib.com/mp3/sample-9s.mp3" },
+      {
+        id: "track-4",
+        name: "Guitar",
+        duration: "2:58",
+        color: "bg-[#F39C12]",
+        audioUrl: "/audio/sample-audio.mp3"
+      },
+      {
+        id: "track-5",
+        name: "Vocals",
+        duration: "2:58",
+        color: "bg-[#1C3F95]",
+        audioUrl: "/audio/sample-audio.mp3"
+      }
     ],
     tags: ["acoustic", "unplugged"],
     lastUpdated: "2024-01-14",

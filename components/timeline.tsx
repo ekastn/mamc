@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useEffect, RefObject } from "react"
+import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Slider } from "@/components/ui/slider"
@@ -31,11 +31,10 @@ import {
 import { TimelineCommentMarkers } from "@/components/features/timeline/timeline-comment-markers"
 import { TimelineCommentCreator } from "@/components/features/timeline/timeline-comment-creator"
 import { TimelineCommentEditor } from "@/components/features/timeline/timeline-comment-editor"
-import { useTimelineKeyboardShortcuts } from "@/hooks/use-timeline-keyboard-shortcuts"
-import type { Track, Comment } from "@/lib/types"
-
-// Fallback audio URL for testing
-const FALLBACK_AUDIO_URL = "https://upload.wikimedia.org/wikipedia/commons/2/28/SampleAudio_0.4mb.mp3"
+import { TimelineKeyboardHelp } from "@/components/features/timeline/timeline-keyboard-help"
+import { TimelineKeyboardShortcuts } from "@/components/features/timeline/timeline-keyboard-shortcuts"
+import type { Track } from "@/lib/types"
+import type { Comment } from "@/lib/types/index"
 
 interface TimelineProps {
   projectId?: string;
@@ -53,17 +52,9 @@ export function Timeline({ projectId, tracks: propTracks, comments: propComments
   const comments = propComments || SAMPLE_COMMENTS
   
   // Playback state
-  const [isPlaying, setIsPlaying] = useState(false)
-  const [currentTimeSeconds, setCurrentTimeSeconds] = useState(0)
-  const [durationSeconds, setDurationSeconds] = useState(225) // 3:45 in seconds
-  const [currentTime, setCurrentTime] = useState("0:00")
-  const [duration, setDuration] = useState("3:45")
   const [volume, setVolume] = useState([80])
   const [zoom, setZoom] = useState(1)
-  const [selectedTrack, setSelectedTrack] = useState<string | null>(null)
   const [activeComments, setActiveComments] = useState(true)
-  const [mutedTracks, setMutedTracks] = useState<string[]>([])
-  const [soloTracks, setSoloTracks] = useState<string[]>([])
   const [visualizationMode, setVisualizationMode] = useState<VisualizationMode>("waveform")
   const [showTimelineActions, setShowTimelineActions] = useState(false)
   const [showCommentCreator, setShowCommentCreator] = useState(false)
@@ -72,267 +63,248 @@ export function Timeline({ projectId, tracks: propTracks, comments: propComments
   const [newComments, setNewComments] = useState<Comment[]>([])
   const [editedComments, setEditedComments] = useState<Comment[]>([])
   const [deletedCommentIds, setDeletedCommentIds] = useState<string[]>([])
-  
-  // Audio elements refs
-  const audioRefs = useRef<Map<string, HTMLAudioElement>>(new Map())
-  const mainAudioRef = useRef<HTMLAudioElement | null>(null)
+
+  // Per-track playback state
+  const [trackPlayback, setTrackPlayback] = useState(() => {
+    const state: Record<string, { currentTime: number; duration: number; isPlaying: boolean }> = {};
+    tracks.forEach(track => {
+      state[track.id] = { currentTime: 0, duration: 225, isPlaying: false };
+    });
+    return state;
+  });
+  const [selectedTrack, setSelectedTrack] = useState<string | null>(tracks[0]?.id || null)
+
+  // Update playback state when tracks change
+  useEffect(() => {
+    setTrackPlayback(prev => {
+      const next = { ...prev };
+      tracks.forEach(track => {
+        if (!next[track.id]) {
+          next[track.id] = { currentTime: 0, duration: 225, isPlaying: false };
+        }
+      });
+      // Remove state for tracks that no longer exist
+      Object.keys(next).forEach(id => {
+        if (!tracks.find(t => t.id === id)) delete next[id];
+      });
+      return next;
+    });
+  }, [tracks]);
+
+  // Audio ref for the selected track
+  const audioRef = useRef<HTMLAudioElement | null>(null)
   const timelineContainerRef = useRef<HTMLDivElement>(null)
   const timelineRef = useRef<HTMLDivElement>(null)
-  
-  // Handle volume increase by 5%
-  const handleVolumeUp = () => {
-    const newVolume = Math.min(100, volume[0] + 5)
-    handleVolumeChange([newVolume])
-  }
-  
-  // Handle volume decrease by 5%
-  const handleVolumeDown = () => {
-    const newVolume = Math.max(0, volume[0] - 5)
-    handleVolumeChange([newVolume])
-  }
-  
-  // Handle zoom in
-  const handleZoomIn = () => {
-    setZoom(Math.min(2, zoom + 0.1))
-  }
-  
-  // Handle zoom out
-  const handleZoomOut = () => {
-    setZoom(Math.max(0.5, zoom - 0.1))
-  }
-  
-  // Initialize main audio for timeline control
+
+  // Ref to always have the latest selectedTrack in event handlers
+  const selectedTrackRef = useRef(selectedTrack);
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      // Use the first track's audio or fallback
-      const firstTrackAudio = tracks[0]?.audioUrl || FALLBACK_AUDIO_URL
-      const audio = new Audio(firstTrackAudio)
-      mainAudioRef.current = audio
-      
-      // Set up event listeners
-      audio.addEventListener('timeupdate', handleTimeUpdate)
-      audio.addEventListener('loadedmetadata', handleMetadataLoaded)
-      audio.addEventListener('ended', handleEnded)
-      
-      return () => {
-        audio.removeEventListener('timeupdate', handleTimeUpdate)
-        audio.removeEventListener('loadedmetadata', handleMetadataLoaded)
-        audio.removeEventListener('ended', handleEnded)
-        audio.pause()
-      }
-    }
-  }, [tracks])
-  
-  // Initialize individual track audio elements
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      // Clear previous audio elements
-      audioRefs.current.forEach(audio => {
-        audio.pause()
-        audio.remove()
-      })
-      audioRefs.current.clear()
-      
-      // Create new audio elements for each track
-      tracks.forEach(track => {
-        const audioUrl = track.audioUrl || FALLBACK_AUDIO_URL
-        const audio = new Audio(audioUrl)
-        audio.volume = volume[0] / 100
-        audioRefs.current.set(track.id, audio)
-      })
-      
-      return () => {
-        // Cleanup
-        audioRefs.current.forEach(audio => {
-          audio.pause()
-          audio.remove()
-        })
-        audioRefs.current.clear()
-      }
-    }
-  }, [tracks])
-  
-  // Update track audibility when mute/solo settings change
-  useEffect(() => {
-    audioRefs.current.forEach((audio, trackId) => {
-      audio.volume = isTrackAudible(trackId) ? volume[0] / 100 : 0
-    })
-  }, [mutedTracks, soloTracks, volume])
-  
+    selectedTrackRef.current = selectedTrack;
+  }, [selectedTrack]);
+
   // Format time from seconds to MM:SS
   const formatTime = (seconds: number): string => {
     const minutes = Math.floor(seconds / 60)
     const secs = Math.floor(seconds % 60)
     return `${minutes}:${secs.toString().padStart(2, '0')}`
   }
-  
-  // Handle time updates
-  const handleTimeUpdate = () => {
-    if (mainAudioRef.current) {
-      const time = mainAudioRef.current.currentTime
-      setCurrentTimeSeconds(time)
-      setCurrentTime(formatTime(time))
-      
-      // Synchronize all track audios with the main audio
-      audioRefs.current.forEach(audio => {
-        if (Math.abs(audio.currentTime - time) > 0.1) {
-          audio.currentTime = time
+
+  // Update duration and time for selected track
+  useEffect(() => {
+    if (!selectedTrack) return;
+    const audio = audioRef.current;
+    if (!audio) return;
+    const handleTimeUpdate = () => {
+      setTrackPlayback(prev => ({
+        ...prev,
+        [selectedTrack]: {
+          ...prev[selectedTrack],
+          currentTime: audio.currentTime,
+          duration: audio.duration || prev[selectedTrack].duration,
+        },
+      }));
+      setCurrentTime(formatTime(audio.currentTime));
+      setDuration(formatTime(audio.duration || 225));
+    };
+    audio.addEventListener('timeupdate', handleTimeUpdate);
+    audio.addEventListener('loadedmetadata', handleTimeUpdate);
+    return () => {
+      audio.removeEventListener('timeupdate', handleTimeUpdate);
+      audio.removeEventListener('loadedmetadata', handleTimeUpdate);
+    };
+  }, [selectedTrack]);
+
+  // Sync isPlaying state with audio element events
+  useEffect(() => {
+    if (!selectedTrack) return;
+    const audio = audioRef.current;
+    if (!audio) return;
+    const handlePlay = () => {
+      const id = selectedTrackRef.current;
+      if (!id) return;
+      setTrackPlayback(prev => {
+        if (!prev[id]) return prev;
+        return {
+          ...prev,
+          [id]: {
+            ...prev[id],
+            isPlaying: true,
+          },
+        };
+      });
+    };
+    const handlePause = () => {
+      const id = selectedTrackRef.current;
+      if (!id) return;
+      setTrackPlayback(prev => {
+        if (!prev[id]) return prev;
+        return {
+          ...prev,
+          [id]: {
+            ...prev[id],
+            isPlaying: false,
+          },
+        };
+      });
+    };
+    const handleEnded = () => {
+      const id = selectedTrackRef.current;
+      if (!id) return;
+      setTrackPlayback(prev => {
+        if (!prev[id]) return prev;
+        return {
+          ...prev,
+          [id]: {
+            ...prev[id],
+            isPlaying: false,
+            currentTime: 0,
+          },
+        };
+      });
+      audio.currentTime = 0;
+    };
+    audio.addEventListener('play', handlePlay);
+    audio.addEventListener('pause', handlePause);
+    audio.addEventListener('ended', handleEnded);
+    return () => {
+      audio.removeEventListener('play', handlePlay);
+      audio.removeEventListener('pause', handlePause);
+      audio.removeEventListener('ended', handleEnded);
+    };
+  }, [selectedTrack]);
+
+  // When switching tracks, pause playback and set audio to last position for that track
+  const handleTrackSelect = (trackId: string) => {
+    // Pause current audio and store its currentTime
+    if (audioRef.current && selectedTrack) {
+      setTrackPlayback(prev => {
+        const next = { ...prev };
+        if (selectedTrack && next[selectedTrack]) {
+          next[selectedTrack] = {
+            ...next[selectedTrack],
+            isPlaying: false,
+            currentTime: audioRef.current!.currentTime,
+          };
         }
-      })
-      
-      // Auto-scroll the timeline if needed based on zoom level
-      if (timelineContainerRef.current && zoom > 1) {
-        const scrollPosition = (time / durationSeconds) * timelineContainerRef.current.scrollWidth * zoom
-        const viewportWidth = timelineContainerRef.current.clientWidth
-        
-        if (scrollPosition > timelineContainerRef.current.scrollLeft + viewportWidth * 0.75) {
-          timelineContainerRef.current.scrollLeft = scrollPosition - viewportWidth * 0.25
-        }
-      }
+        return next;
+      });
+      audioRef.current.pause();
     }
-  }
-  
-  // Handle metadata loaded
-  const handleMetadataLoaded = () => {
-    if (mainAudioRef.current) {
-      const audioDuration = mainAudioRef.current.duration
-      setDurationSeconds(audioDuration)
-      setDuration(formatTime(audioDuration))
+    setSelectedTrack(trackId);
+  };
+
+  // Set audio.currentTime to the stored value when selectedTrack changes
+  useEffect(() => {
+    if (!selectedTrack) return;
+    const audio = audioRef.current;
+    if (!audio) return;
+    const storedTime = trackPlayback[selectedTrack]?.currentTime || 0;
+    if (Math.abs(audio.currentTime - storedTime) > 0.1) {
+      audio.currentTime = storedTime;
     }
-  }
-  
-  // Handle playback ended
-  const handleEnded = () => {
-    setIsPlaying(false)
-    audioRefs.current.forEach(audio => {
-      audio.pause()
-      audio.currentTime = 0
-    })
-  }
-  
+  }, [selectedTrack, trackPlayback]);
+
+  // Get current playback state for selected track
+  const currentTrackState = selectedTrack ? trackPlayback[selectedTrack] : undefined;
+  const currentTimeSeconds = currentTrackState?.currentTime || 0;
+  const durationSeconds = currentTrackState?.duration || 225;
+  const isPlaying = currentTrackState?.isPlaying || false;
+  const [currentTime, setCurrentTime] = useState("0:00");
+  const [duration, setDuration] = useState("3:45");
+
   // Handle seek in the waveform
   const handleSeek = (position: number) => {
-    if (mainAudioRef.current) {
-      mainAudioRef.current.currentTime = position
-      
-      // Update all track audio positions
-      audioRefs.current.forEach(audio => {
-        audio.currentTime = position
-      })
-      
-      setCurrentTimeSeconds(position)
-      setCurrentTime(formatTime(position))
-    }
-  }
-  
-  // Toggle play/pause
+    if (!selectedTrack) return;
+    const audio = audioRef.current;
+    if (!audio) return;
+    audio.currentTime = position;
+    setTrackPlayback(prev => ({
+      ...prev,
+      [selectedTrack]: {
+        ...prev[selectedTrack],
+        currentTime: position,
+      },
+    }));
+    setCurrentTime(formatTime(position));
+  };
+
+  // Toggle play/pause for selected track
   const togglePlayback = () => {
-    if (mainAudioRef.current) {
-      if (isPlaying) {
-        mainAudioRef.current.pause()
-        audioRefs.current.forEach(audio => {
-          audio.pause()
-        })
-      } else {
-        const playPromises = Array.from(audioRefs.current.entries()).map(([trackId, audio]) => {
-          if (isTrackAudible(trackId)) {
-            return audio.play().catch(error => {
-              console.error("Audio playback error:", error)
-            })
-          }
-          return Promise.resolve()
-        })
-        
-        // Play main audio after all tracks start playing
-        Promise.all(playPromises).then(() => {
-          mainAudioRef.current?.play().catch(error => {
-            console.error("Main audio playback error:", error)
-          })
-        })
-      }
-      setIsPlaying(!isPlaying)
+    if (!selectedTrack) return;
+    const audio = audioRef.current;
+    if (!audio) return;
+    if (audio.paused) {
+      audio.play().catch(error => {
+        console.error("Audio playback error:", error);
+      });
+    } else {
+      audio.pause();
     }
-  }
-  
+  };
+
   // Skip backward by 5 seconds
   const skipBackward = () => {
-    if (mainAudioRef.current) {
-      const newTime = Math.max(0, mainAudioRef.current.currentTime - 5)
-      mainAudioRef.current.currentTime = newTime
-      
-      // Update all track audio positions
-      audioRefs.current.forEach(audio => {
-        audio.currentTime = newTime
-      })
-    }
-  }
-  
+    if (!selectedTrack) return;
+    const audio = audioRef.current;
+    if (!audio) return;
+    const newTime = Math.max(0, audio.currentTime - 5);
+    audio.currentTime = newTime;
+    setTrackPlayback(prev => ({
+      ...prev,
+      [selectedTrack]: {
+        ...prev[selectedTrack],
+        currentTime: newTime,
+      },
+    }));
+    setCurrentTime(formatTime(newTime));
+  };
+
   // Skip forward by 5 seconds
   const skipForward = () => {
-    if (mainAudioRef.current) {
-      const newTime = Math.min(mainAudioRef.current.duration, mainAudioRef.current.currentTime + 5)
-      mainAudioRef.current.currentTime = newTime
-      
-      // Update all track audio positions
-      audioRefs.current.forEach(audio => {
-        audio.currentTime = newTime
-      })
-    }
-  }
-  
+    if (!selectedTrack) return;
+    const audio = audioRef.current;
+    if (!audio) return;
+    const newTime = Math.min(audio.duration, audio.currentTime + 5);
+    audio.currentTime = newTime;
+    setTrackPlayback(prev => ({
+      ...prev,
+      [selectedTrack]: {
+        ...prev[selectedTrack],
+        currentTime: newTime,
+      },
+    }));
+    setCurrentTime(formatTime(newTime));
+  };
+
   // Handle volume change
   const handleVolumeChange = (newVolume: number[]) => {
-    setVolume(newVolume)
-    
-    // Update volume for all audible tracks
-    audioRefs.current.forEach((audio, trackId) => {
-      if (isTrackAudible(trackId)) {
-        audio.volume = newVolume[0] / 100
-      }
-    })
-    
-    if (mainAudioRef.current) {
-      mainAudioRef.current.volume = newVolume[0] / 100
-    }
-  }
-  
-  // Handle track selection
-  const handleTrackSelect = (trackId: string) => {
-    setSelectedTrack(selectedTrack === trackId ? null : trackId)
-  }
-  
-  // Handle track mute
-  const handleTrackMute = (trackId: string, muted: boolean) => {
-    if (muted) {
-      setMutedTracks([...mutedTracks, trackId])
-    } else {
-      setMutedTracks(mutedTracks.filter(id => id !== trackId))
-    }
-    
-    // Update audio volume
-    const audio = audioRefs.current.get(trackId)
+    setVolume(newVolume);
+    if (!selectedTrack) return;
+    const audio = audioRef.current;
     if (audio) {
-      audio.volume = muted ? 0 : volume[0] / 100
+      audio.volume = newVolume[0] / 100;
     }
-  }
-  
-  // Handle track solo
-  const handleTrackSolo = (trackId: string, solo: boolean) => {
-    const newSoloTracks = solo 
-      ? [...soloTracks, trackId] 
-      : soloTracks.filter(id => id !== trackId)
-    
-    setSoloTracks(newSoloTracks)
-    
-    // Update all track volumes based on new solo state
-    audioRefs.current.forEach((audio, id) => {
-      const isSolo = newSoloTracks.includes(id)
-      const isMuted = mutedTracks.includes(id)
-      const shouldPlay = newSoloTracks.length === 0 ? !isMuted : isSolo
-      
-      audio.volume = shouldPlay ? volume[0] / 100 : 0
-    })
-  }
+  };
 
   // Handle comment click
   const handleCommentClick = (comment: Comment) => {
@@ -436,13 +408,6 @@ export function Timeline({ projectId, tracks: propTracks, comments: propComments
     setShowCommentEditor(false)
   }
 
-  // Determine if a track should be audible based on mute/solo settings
-  const isTrackAudible = (trackId: string) => {
-    if (mutedTracks.includes(trackId)) return false
-    if (soloTracks.length > 0) return soloTracks.includes(trackId)
-    return true
-  }
-
   // Combine and filter comments for display
   const displayComments = [
     // Include original comments that haven't been deleted
@@ -456,23 +421,27 @@ export function Timeline({ projectId, tracks: propTracks, comments: propComments
     ...newComments
   ]
   
-  // Initialize keyboard shortcuts - moved to after all function declarations to prevent access before initialization errors
-  useTimelineKeyboardShortcuts({
-    onTogglePlayback: togglePlayback,
-    onSkipForward: skipForward,
-    onSkipBackward: skipBackward,
-    onVolumeUp: handleVolumeUp,
-    onVolumeDown: handleVolumeDown,
-    onZoomIn: handleZoomIn,
-    onZoomOut: handleZoomOut,
-    onMuteTrack: (trackId) => handleTrackMute(trackId, !mutedTracks.includes(trackId)),
-    onSoloTrack: (trackId) => handleTrackSolo(trackId, !soloTracks.includes(trackId)),
-    containerRef: timelineRef as RefObject<HTMLElement>,
-    selectedTrackId: selectedTrack
-  })
-
   return (
     <div className="space-y-6" ref={timelineRef}>
+      {/* Audio element for selected track (hidden) */}
+      {selectedTrack && (
+        <audio
+          ref={audioRef}
+          src={tracks.find(t => t.id === selectedTrack)?.audioUrl || "/audio/sample-audio.mp3"}
+          style={{ display: 'none' }}
+        />
+      )}
+      {/* Keyboard shortcuts handler */}
+      <TimelineKeyboardShortcuts
+        onTogglePlayback={togglePlayback}
+        onSkipForward={skipForward}
+        onSkipBackward={skipBackward}
+        onVolumeUp={() => handleVolumeChange([Math.min(100, volume[0] + 5)])}
+        onVolumeDown={() => handleVolumeChange([Math.max(0, volume[0] - 5)])}
+        onZoomIn={() => setZoom(Math.min(2, zoom + 0.1))}
+        onZoomOut={() => setZoom(Math.max(0.5, zoom - 0.1))}
+        hasSelectedTrack={!!selectedTrack}
+      />
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Button 
@@ -484,6 +453,7 @@ export function Timeline({ projectId, tracks: propTracks, comments: propComments
             <MessageSquare className="h-4 w-4 mr-2" />
             {activeComments ? 'Hide Comments' : 'Show Comments'}
           </Button>
+          <TimelineKeyboardHelp />
           <Badge
             variant="outline"
             className="gap-1 border-2 border-[#FFD500] bg-[#FFD500]/10 text-black uppercase text-xs tracking-wide rounded-none"
@@ -585,7 +555,9 @@ export function Timeline({ projectId, tracks: propTracks, comments: propComments
               <div className="relative h-20 rounded-none overflow-hidden bg-gray-50"
                    style={{ width: `${zoom * 100}%` }}>
                 <WaveformVisualizer
-                  audioUrl={tracks[0]?.audioUrl || FALLBACK_AUDIO_URL}
+                  audioUrl={selectedTrack 
+                    ? tracks.find(t => t.id === selectedTrack)?.audioUrl || "/audio/sample-audio.mp3"
+                    : "/audio/sample-audio.mp3"}
                   currentTime={currentTimeSeconds}
                   duration={durationSeconds}
                   isPlaying={isPlaying}
@@ -594,6 +566,7 @@ export function Timeline({ projectId, tracks: propTracks, comments: propComments
                   waveColor="#000000"
                   progressColor="#E41E26"
                   interactive={true}
+                  visualizationMode={visualizationMode}
                   className="bauhaus-grid"
                 />
                 
@@ -630,14 +603,11 @@ export function Timeline({ projectId, tracks: propTracks, comments: propComments
                       key={track.id}
                       track={track}
                       isSelected={selectedTrack === track.id}
-                      currentTimeSeconds={currentTimeSeconds}
-                      durationSeconds={durationSeconds}
+                      currentTimeSeconds={trackPlayback[track.id]?.currentTime || 0}
+                      durationSeconds={trackPlayback[track.id]?.duration || 225}
                       zoom={zoom}
-                      visualizationMode={visualizationMode}
                       onSelect={handleTrackSelect}
-                      onMute={handleTrackMute}
-                      onSolo={handleTrackSolo}
-                      isAudible={isTrackAudible(track.id)}
+                      isAudible={true}
                     />
                   ))}
                 </div>
@@ -728,7 +698,7 @@ export function Timeline({ projectId, tracks: propTracks, comments: propComments
       {/* Comment editor dialog */}
       {showCommentEditor && editingComment && (
         <TimelineCommentEditor
-          comment={editingComment}
+          comment={editingComment as Comment}
           formatTime={formatTime}
           onSaveComment={handleSaveComment}
           onDeleteComment={handleDeleteComment}

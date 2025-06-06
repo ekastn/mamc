@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from "@/components/ui/context-menu"
 import { cn, getEmotionColor, getEmotionIcon } from "@/lib/utils"
-import type { Comment } from "@/lib/types"
+import type { Comment } from "@/lib/types/index"
 
 interface TimelineCommentMarkersProps {
   comments: Comment[]

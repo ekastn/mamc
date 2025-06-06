@@ -5,10 +5,21 @@ import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { ModeToggle } from "@/components/mode-toggle"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Bell, LogOut, Home, Music, BarChart3, Users, User, Settings } from "lucide-react"
+import { 
+  Bell, 
+  LogOut, 
+  Home, 
+  Music, 
+  BarChart3, 
+  Users, 
+  User, 
+  Settings, 
+  Shield
+} from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { useState } from "react"
 import { useAuth } from "@/context/auth-context"
+import { NotificationCenter } from "@/components/notification-center"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,8 +31,9 @@ import {
 const NAV_ITEMS = [
   { name: "Dashboard", href: "/", icon: Home },
   { name: "Projects", href: "/projects", icon: Music },
-  { name: "Analytics", href: "/analytics", icon: BarChart3 },
   { name: "Collaborators", href: "/collaborators", icon: Users },
+  { name: "Analytics", href: "/analytics", icon: BarChart3 },
+  { name: "Moderation", href: "/moderation", icon: Shield },
 ]
 
 export default function Navigation() {
@@ -64,17 +76,76 @@ export default function Navigation() {
         </nav>
 
         <div className="flex items-center space-x-2">
-          <Button variant="ghost" size="icon" className="relative" onClick={clearNotifications}>
-            <Bell className="h-5 w-5" />
-            {notifications > 0 && (
-              <Badge
-                variant="destructive"
-                className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs bg-[#E41E26]"
-              >
-                {notifications}
-              </Badge>
-            )}
-          </Button>
+          <NotificationCenter 
+            notifications={[
+              {
+                id: "1",
+                type: "comment",
+                title: "New comment on Summer Vibes EP",
+                message: "Maria Rodriguez commented on your track",
+                timestamp: "2 minutes ago",
+                read: false,
+                user: {
+                  id: "user-2",
+                  name: "Maria Rodriguez",
+                  avatar: "/placeholder-user.jpg"
+                },
+                projectId: "project-1",
+                projectTitle: "Summer Vibes EP",
+                actionUrl: "/projects/project-1"
+              },
+              {
+                id: "2",
+                type: "version",
+                title: "New version uploaded",
+                message: "David Kim uploaded version 2.3 of Midnight Blue",
+                timestamp: "1 hour ago",
+                read: false,
+                user: {
+                  id: "user-3",
+                  name: "David Kim",
+                  avatar: "/placeholder-user.jpg"
+                },
+                projectId: "project-2",
+                projectTitle: "Midnight Blue",
+                actionUrl: "/projects/project-2"
+              },
+              {
+                id: "3",
+                type: "emotional",
+                title: "Mood Trend Alert",
+                message: "Team members are feeling frustrated with the current project",
+                timestamp: "3 hours ago",
+                read: false,
+                projectId: "project-1",
+                projectTitle: "Summer Vibes EP",
+                actionUrl: "/projects/project-1"
+              }
+            ]}
+            suggestions={[
+              {
+                id: "suggestion-1",
+                type: "conflict",
+                title: "Potential Conflict Detected",
+                message: "Multiple disagreements in comments on 'Drum Patterns'",
+                actionLabel: "Resolve Issue",
+                actionUrl: "/moderation",
+                importance: "high"
+              },
+              {
+                id: "suggestion-2",
+                type: "emotional",
+                title: "Collaborator Mood Check-in",
+                message: "Check in with collaborators to address frustration",
+                actionLabel: "Message Collaborators",
+                actionUrl: "/collaborators",
+                importance: "medium"
+              }
+            ]}
+            onNotificationRead={(id) => console.log("Notification read:", id)}
+            onAllNotificationsRead={() => console.log("All notifications read")}
+            onNotificationRemove={(id) => console.log("Notification removed:", id)}
+          />
 
           <ModeToggle />
 
