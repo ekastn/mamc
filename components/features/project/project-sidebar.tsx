@@ -5,8 +5,8 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Clock, Users, Music, Tag, Share2, Settings } from "lucide-react"
-import type { Project } from "@/lib/types"
-import { cn } from "@/lib/utils"
+import type { Project } from "@/lib/types/index"
+import { cn, getMoodBorderColor } from "@/lib/utils"
 
 interface ProjectSidebarProps {
   project: Project
@@ -63,7 +63,7 @@ export function ProjectSidebar({ project }: ProjectSidebarProps) {
                 variant="outline"
                 className={cn(
                   "h-3 w-3 p-0 border-2",
-                  `border-${collaborator.mood === "happy" ? "[#FFD500]" : collaborator.mood === "frustrated" ? "[#E41E26]" : "black"}`,
+                  getMoodBorderColor(collaborator.mood)
                 )}
               />
             </div>

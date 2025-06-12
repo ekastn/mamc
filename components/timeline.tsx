@@ -21,7 +21,11 @@ import {
   MessageSquare
 } from "lucide-react"
 import { cn, getEmotionColor, getEmotionIcon } from "@/lib/utils"
-import { SAMPLE_COMMENTS, SAMPLE_PROJECTS, SAMPLE_USERS } from "@/lib/constants"
+// Import constants from their specific files
+import { SAMPLE_USERS } from "@/lib/constants/user"
+import { SAMPLE_COMMENTS } from "@/lib/constants/comments"
+import { SAMPLE_PROJECTS } from "@/lib/constants/projects"
+import { DEFAULT_AUDIO_URL, SAMPLE_TIMELINE_TRACKS } from "@/lib/constants/timeline-audio"
 import { WaveformVisualizer } from "@/components/waveform-visualizer"
 import { TrackItem } from "@/components/features/timeline/track-item"
 import { 
@@ -33,8 +37,8 @@ import { TimelineCommentCreator } from "@/components/features/timeline/timeline-
 import { TimelineCommentEditor } from "@/components/features/timeline/timeline-comment-editor"
 import { TimelineKeyboardHelp } from "@/components/features/timeline/timeline-keyboard-help"
 import { TimelineKeyboardShortcuts } from "@/components/features/timeline/timeline-keyboard-shortcuts"
-import type { Track } from "@/lib/types"
-import type { Comment } from "@/lib/types/index"
+import type { Project, Comment } from "@/lib/types/index"
+import type { ProjectTrack as Track } from "@/lib/types/project"
 
 interface TimelineProps {
   projectId?: string;
@@ -45,8 +49,8 @@ interface TimelineProps {
 export function Timeline({ projectId, tracks: propTracks, comments: propComments }: TimelineProps) {
   // Use provided tracks or fallback to sample data
   const tracks = propTracks || (projectId 
-    ? SAMPLE_PROJECTS.find(p => p.id === projectId)?.tracks 
-    : SAMPLE_PROJECTS[0]?.tracks) || []
+    ? SAMPLE_PROJECTS.find((p: any) => p.id === projectId)?.tracks 
+    : SAMPLE_TIMELINE_TRACKS) || []
   
   // Use provided comments or fallback to sample data
   const comments = propComments || SAMPLE_COMMENTS
@@ -67,7 +71,7 @@ export function Timeline({ projectId, tracks: propTracks, comments: propComments
   // Per-track playback state
   const [trackPlayback, setTrackPlayback] = useState(() => {
     const state: Record<string, { currentTime: number; duration: number; isPlaying: boolean }> = {};
-    tracks.forEach(track => {
+    tracks.forEach((track: Track) => {
       state[track.id] = { currentTime: 0, duration: 225, isPlaying: false };
     });
     return state;
@@ -78,14 +82,14 @@ export function Timeline({ projectId, tracks: propTracks, comments: propComments
   useEffect(() => {
     setTrackPlayback(prev => {
       const next = { ...prev };
-      tracks.forEach(track => {
+      tracks.forEach((track: Track) => {
         if (!next[track.id]) {
           next[track.id] = { currentTime: 0, duration: 225, isPlaying: false };
         }
       });
       // Remove state for tracks that no longer exist
       Object.keys(next).forEach(id => {
-        if (!tracks.find(t => t.id === id)) delete next[id];
+        if (!tracks.find((t: Track) => t.id === id)) delete next[id];
       });
       return next;
     });
@@ -361,7 +365,7 @@ export function Timeline({ projectId, tracks: propTracks, comments: propComments
       }))
     } else {
       // Find the original comment
-      const originalComment = comments.find(c => c.id === commentId)
+      const originalComment = comments.find((c: Comment) => c.id === commentId)
       
       if (originalComment) {
         // Check if this comment is already in editedComments
@@ -411,9 +415,9 @@ export function Timeline({ projectId, tracks: propTracks, comments: propComments
   // Combine and filter comments for display
   const displayComments = [
     // Include original comments that haven't been deleted
-    ...comments.filter(comment => !deletedCommentIds.includes(comment.id))
+    ...comments.filter((comment: Comment) => !deletedCommentIds.includes(comment.id))
       // Replace with edited version if it exists
-      .map(comment => {
+      .map((comment: Comment) => {
         const editedVersion = editedComments.find(c => c.id === comment.id)
         return editedVersion || comment
       }),
@@ -427,7 +431,15 @@ export function Timeline({ projectId, tracks: propTracks, comments: propComments
       {selectedTrack && (
         <audio
           ref={audioRef}
-          src={tracks.find(t => t.id === selectedTrack)?.audioUrl || "/audio/sample-audio.mp3"}
+          src={selectedTrack 
+            ? (() => {
+                const track = tracks.find((t: Track) => t.id === selectedTrack);
+                if (!track) return DEFAULT_AUDIO_URL;
+                const version = track.versions.find((v: any) => v.id === track.currentVersionId);
+                return version?.audioUrl || DEFAULT_AUDIO_URL;
+              })()
+            : DEFAULT_AUDIO_URL
+          }
           style={{ display: 'none' }}
         />
       )}
@@ -556,8 +568,13 @@ export function Timeline({ projectId, tracks: propTracks, comments: propComments
                    style={{ width: `${zoom * 100}%` }}>
                 <WaveformVisualizer
                   audioUrl={selectedTrack 
-                    ? tracks.find(t => t.id === selectedTrack)?.audioUrl || "/audio/sample-audio.mp3"
-                    : "/audio/sample-audio.mp3"}
+                    ? (() => {
+                        const track = tracks.find((t: Track) => t.id === selectedTrack);
+                        if (!track) return DEFAULT_AUDIO_URL;
+                        const version = track.versions.find((v: any) => v.id === track.currentVersionId);
+                        return version?.audioUrl || DEFAULT_AUDIO_URL;
+                      })()
+                    : DEFAULT_AUDIO_URL}
                   currentTime={currentTimeSeconds}
                   duration={durationSeconds}
                   isPlaying={isPlaying}
@@ -598,7 +615,7 @@ export function Timeline({ projectId, tracks: propTracks, comments: propComments
                 zoom > 1 ? "overflow-x-auto" : "overflow-x-hidden"
               )}>
                 <div style={{ width: `${zoom > 1 ? zoom * 100 : 100}%` }}>
-                  {tracks.map((track) => (
+                  {tracks.map((track: Track) => (
                     <TrackItem
                       key={track.id}
                       track={track}
@@ -608,6 +625,43 @@ export function Timeline({ projectId, tracks: propTracks, comments: propComments
                       zoom={zoom}
                       onSelect={handleTrackSelect}
                       isAudible={true}
+                      onVersionSelect={(trackId, versionId) => {
+                        // Find the track to update
+                        const trackToUpdate = tracks.find((t: Track) => t.id === trackId);
+                        if (!trackToUpdate) return;
+
+                        // Update the track's current version
+                        trackToUpdate.currentVersionId = versionId;
+
+                        // If this is the selected track, update audio source
+                        if (selectedTrack === trackId && audioRef.current) {
+                          // Get the selected version
+                          const selectedVersion = trackToUpdate.versions.find(v => v.id === versionId);
+                          if (selectedVersion?.audioUrl) {
+                            // Update the audio source and maintain playback state
+                            const wasPlaying = !audioRef.current.paused;
+                            const currentTime = audioRef.current.currentTime;
+                            
+                            // Set new audio source
+                            audioRef.current.src = selectedVersion.audioUrl;
+                            audioRef.current.currentTime = currentTime;
+                            
+                            // Resume playback if it was playing
+                            if (wasPlaying) {
+                              audioRef.current.play().catch(err => console.error("Error resuming playback:", err));
+                            }
+                          }
+                        }
+
+                        // Trigger a re-render to update the UI
+                        setTrackPlayback(prev => ({
+                          ...prev,
+                          [trackId]: {
+                            ...prev[trackId],
+                            // Reset playback if needed or maintain current state
+                          }
+                        }));
+                      }}
                     />
                   ))}
                 </div>

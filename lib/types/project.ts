@@ -10,6 +10,15 @@ export interface Collaborator {
   mood: string
 }
 
+export interface TrackVersion {
+  id: string
+  number: string
+  audioUrl: string
+  timestamp: string
+  authorId: string
+  changes: string[]
+}
+
 export interface ProjectTrack {
   id: string
   name: string
@@ -19,6 +28,18 @@ export interface ProjectTrack {
   muted?: boolean
   solo?: boolean
   volume?: number
+  versions: TrackVersion[]
+  currentVersionId: string
+}
+
+export interface Checkpoint {
+  id: string
+  name: string
+  label: string
+  timestamp: string
+  authorId: string
+  trackVersions: Record<string, string>  // Maps track IDs to version IDs
+  description?: string
 }
 
 export interface Project {
@@ -29,7 +50,8 @@ export interface Project {
   tracks: ProjectTrack[]
   tags: string[]
   lastUpdated: string
-  version: string
+  checkpoints: Checkpoint[]
+  currentCheckpointId?: string
   color: string
   settings?: ProjectSettings
   createdAt?: string

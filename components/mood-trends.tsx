@@ -4,7 +4,8 @@ import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { cn } from "@/lib/utils"
+import { cn, getMoodColor } from "@/lib/utils"
+import { COLOR_CLASSES } from "@/lib/constants/theme"
 
 // Mock data for mood trends
 const weeklyMoodData = [
@@ -33,22 +34,14 @@ const projectMoodData = [
 
 // Emotion distribution data
 const emotionDistribution = [
-  { emotion: "HAPPY", percentage: 45, color: "bg-[#FFD500]" },
-  { emotion: "NEUTRAL", percentage: 30, color: "bg-[#1C3F95]" },
-  { emotion: "FRUSTRATED", percentage: 15, color: "bg-[#E41E26]" },
-  { emotion: "SAD", percentage: 10, color: "bg-black" },
+  { emotion: "HAPPY", percentage: 45, color: COLOR_CLASSES.BG.YELLOW },
+  { emotion: "NEUTRAL", percentage: 30, color: COLOR_CLASSES.BG.BLUE },
+  { emotion: "FRUSTRATED", percentage: 15, color: COLOR_CLASSES.BG.RED },
+  { emotion: "SAD", percentage: 10, color: COLOR_CLASSES.BG.BLACK },
 ]
 
 export function MoodTrends() {
   const [timeframe, setTimeframe] = useState("week")
-
-  const getMoodColor = (mood: string) => {
-    switch (mood) {
-      case "happy":
-        return "bg-[#FFD500]"
-      case "sad":
-        return "bg-[#1C3F95]"
-      case "frustrated":
         return "bg-[#E41E26]"
       default:
         return "bg-black"

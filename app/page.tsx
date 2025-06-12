@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import Link from "next/link"
 import { ArrowRight, Music, Plus, Sparkles, Users } from "lucide-react"
-import { MoodSelector } from "@/components/mood-selector"
+import { EmotionSelector } from "@/components/emotion-selector"
 import { getMoodColor } from "@/lib/utils"
 
 export default function Home() {
@@ -13,7 +13,7 @@ export default function Home() {
           <div className="space-y-4 p-6 border-2 border-black">
             <h1 className="text-3xl font-bold tracking-tight uppercase">Welcome back!</h1>
             <p className="text-muted-foreground uppercase text-sm tracking-wide">How are you feeling today?</p>
-            <MoodSelector />
+            <EmotionSelector />
           </div>
 
           <div className="space-y-4">

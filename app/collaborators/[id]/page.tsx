@@ -20,8 +20,7 @@ import {
   UserPlus,
   MessageSquare,
 } from "lucide-react"
-import { getMoodColor } from "@/lib/utils/project-utils"
-import { cn } from "@/lib/utils"
+import { cn, getMoodColor } from "@/lib/utils"
 import { useRouter } from "next/navigation"
 
 // Sample collaborator data

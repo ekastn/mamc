@@ -33,26 +33,8 @@ export interface RegisterCredentials {
   confirmPassword: string
 }
 
-// Project types
-export interface Project {
-  id: string
-  title: string
-  description: string
-  collaborators: User[]
-  tracks: Track[]
-  tags: string[]
-  lastUpdated: string
-  version: string
-  color: string
-}
-
-export interface Track {
-  id: string
-  name: string
-  duration: string
-  color: string
-  audioUrl?: string
-}
+// Re-export project types
+export * from './project'
 
 // Comment types
 export interface Comment {
@@ -66,18 +48,6 @@ export interface Comment {
   hasConflict?: boolean
   likes?: number
   replies?: number
-}
-
-// Version types
-export interface Version {
-  id: string
-  name: string
-  user: User
-  timestamp: string
-  changes: string[]
-  isCurrent: boolean
-  type: "upload" | "edit" | "milestone"
-  files?: string[]
 }
 
 // File upload types

@@ -15,7 +15,7 @@ export default function ProjectsPage() {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
   const [filterTag, setFilterTag] = useState<string>("all")
 
-  const projects = projectService.getAllProjects()
+  const projects = projectService.getAllProjects() || []
 
   const filteredProjects = projects.filter((project) => {
     const matchesSearch =
@@ -111,9 +111,15 @@ export default function ProjectsPage() {
                       {project.description}
                     </CardDescription>
                   </div>
-                  <Badge variant="outline" className="border-2 border-black uppercase text-xs tracking-wide">
-                    {project.version}
-                  </Badge>
+                  {project.checkpoints && project.checkpoints.length > 0 && project.currentCheckpointId ? (
+                    <Badge variant="outline" className="border-2 border-black uppercase text-xs tracking-wide">
+                      {project.checkpoints.find(cp => cp.id === project.currentCheckpointId)?.label || 'v1.0'}
+                    </Badge>
+                  ) : (
+                    <Badge variant="outline" className="border-2 border-black uppercase text-xs tracking-wide">
+                      No version
+                    </Badge>
+                  )}
                 </div>
               </CardHeader>
               <CardContent className="pb-3">
@@ -130,9 +136,18 @@ export default function ProjectsPage() {
                       <span className="text-xs uppercase tracking-wide">{project.tracks.length} tracks</span>
                     </div>
                   </div>
-                  <div className="flex items-center gap-1 text-sm">
-                    <Clock className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-xs uppercase tracking-wide">Updated {project.lastUpdated}</span>
+                  <div className="flex items-center justify-between text-sm">
+                    <div className="flex items-center gap-1">
+                      <Clock className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-xs uppercase tracking-wide">Updated {project.lastUpdated}</span>
+                    </div>
+                    {project.checkpoints && (
+                      <div className="flex items-center gap-1">
+                        <span className="text-xs uppercase tracking-wide">
+                          {project.checkpoints.length} {project.checkpoints.length === 1 ? 'checkpoint' : 'checkpoints'}
+                        </span>
+                      </div>
+                    )}
                   </div>
                   <div className="flex flex-wrap gap-1">
                     {project.tags.slice(0, 3).map((tag) => (

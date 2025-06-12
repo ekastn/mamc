@@ -13,37 +13,9 @@ import {
   DialogClose,
 } from "@/components/ui/dialog"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { EMOTIONS, Emotion } from "@/lib/constants/emotions"
 
-type Emotion = {
-  name: string
-  emoji: string
-  color: string
-  bgColor: string
-  category: string
-}
-
-const emotions: Emotion[] = [
-  // Happy emotions
-  { name: "HAPPY", emoji: "■", color: "bg-[#FFD500]", bgColor: "bg-[#FFD500]/10", category: "positive" },
-  { name: "EXCITED", emoji: "■", color: "bg-[#FFD500]", bgColor: "bg-[#FFD500]/10", category: "positive" },
-  { name: "INSPIRED", emoji: "■", color: "bg-[#FFD500]", bgColor: "bg-[#FFD500]/10", category: "positive" },
-  { name: "PROUD", emoji: "■", color: "bg-[#FFD500]", bgColor: "bg-[#FFD500]/10", category: "positive" },
-  { name: "SATISFIED", emoji: "■", color: "bg-[#FFD500]", bgColor: "bg-[#FFD500]/10", category: "positive" },
-
-  // Neutral emotions
-  { name: "CALM", emoji: "■", color: "bg-[#1C3F95]", bgColor: "bg-[#1C3F95]/10", category: "neutral" },
-  { name: "FOCUSED", emoji: "■", color: "bg-[#1C3F95]", bgColor: "bg-[#1C3F95]/10", category: "neutral" },
-  { name: "NEUTRAL", emoji: "■", color: "bg-black", bgColor: "bg-black/10", category: "neutral" },
-  { name: "CURIOUS", emoji: "■", color: "bg-[#1C3F95]", bgColor: "bg-[#1C3F95]/10", category: "neutral" },
-  { name: "THOUGHTFUL", emoji: "■", color: "bg-[#1C3F95]", bgColor: "bg-[#1C3F95]/10", category: "neutral" },
-
-  // Negative emotions
-  { name: "TIRED", emoji: "■", color: "bg-[#1C3F95]", bgColor: "bg-[#1C3F95]/10", category: "negative" },
-  { name: "SAD", emoji: "■", color: "bg-[#1C3F95]", bgColor: "bg-[#1C3F95]/10", category: "negative" },
-  { name: "FRUSTRATED", emoji: "■", color: "bg-[#E41E26]", bgColor: "bg-[#E41E26]/10", category: "negative" },
-  { name: "CONFUSED", emoji: "■", color: "bg-[#E41E26]", bgColor: "bg-[#E41E26]/10", category: "negative" },
-  { name: "OVERWHELMED", emoji: "■", color: "bg-[#E41E26]", bgColor: "bg-[#E41E26]/10", category: "negative" },
-]
+const emotions = EMOTIONS
 
 interface EmotionSelectorProps {
   onSelect?: (emotion: Emotion) => void
@@ -159,7 +131,7 @@ export function EmotionSelector({ onSelect, selectedEmotion = null, compact = fa
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
-        {emotions.slice(0, 10).map((emotion) => (
+        {emotions.slice(0, 9).map((emotion) => (
           <Button
             key={emotion.name}
             variant="outline"

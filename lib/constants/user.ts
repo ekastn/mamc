@@ -3,6 +3,39 @@
  */
 
 import type { UserProfile, NotificationSettings, SecuritySettings } from "@/lib/types/user"
+import type { User } from "@/lib/types"
+
+// Sample users
+export const SAMPLE_USERS: User[] = [
+  {
+    id: "1",
+    name: "Jamie Davis",
+    avatar: "/placeholder-user.jpg",
+    role: "owner",
+    mood: "happy",
+  },
+  {
+    id: "2",
+    name: "Alex Chen",
+    avatar: "/placeholder-user.jpg",
+    role: "editor",
+    mood: "neutral",
+  },
+  {
+    id: "3",
+    name: "Sarah Wilson",
+    avatar: "/placeholder-user.jpg",
+    role: "editor",
+    mood: "happy",
+  },
+  {
+    id: "4",
+    name: "Mike Johnson",
+    avatar: "/placeholder-user.jpg",
+    role: "viewer",
+    mood: "frustrated",
+  },
+]
 
 // Sample user profile data
 export const SAMPLE_USER: UserProfile = {

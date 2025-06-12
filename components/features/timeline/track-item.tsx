@@ -2,10 +2,11 @@
 
 import { useState } from "react"
 import { cn } from "@/lib/utils"
-import type { Track } from "@/lib/types"
+import type { ProjectTrack } from "@/lib/types/project"
+import { TrackVersionSelector } from "./track-version-selector"
 
 interface TrackProps {
-  track: Track
+  track: ProjectTrack
   isSelected: boolean
   currentTimeSeconds: number
   durationSeconds: number
@@ -13,6 +14,7 @@ interface TrackProps {
   onSelect: (id: string) => void
   onMute?: (id: string, muted: boolean) => void
   onSolo?: (id: string, solo: boolean) => void
+  onVersionSelect: (trackId: string, versionId: string) => void
   isAudible?: boolean
 }
 
@@ -25,6 +27,7 @@ export function TrackItem({
   onSelect,
   onMute,
   onSolo,
+  onVersionSelect,
   isAudible = true,
 }: TrackProps) {
   const [isMuted, setIsMuted] = useState(false)
@@ -46,6 +49,10 @@ export function TrackItem({
     }
   }
 
+  const handleVersionSelect = (versionId: string) => {
+    onVersionSelect(track.id, versionId)
+  }
+
   // Calculate progress percentage
   const progressPercentage = Math.min(100, (currentTimeSeconds / durationSeconds) * 100)
 
@@ -58,44 +65,45 @@ export function TrackItem({
       )}
       onClick={() => onSelect(track.id)}
     >
-      <div className="flex items-center justify-between w-20">
+      <div className="flex items-center justify-between w-48">
         <div className="text-sm font-medium truncate uppercase tracking-wide">{track.name}</div>
-        <div className="flex gap-1">
-          {onMute && (
-            <button
-              className={cn(
-                "text-xs px-1 rounded",
-                isMuted ? "bg-red-100 text-red-800" : "bg-gray-100"
-              )}
-              onClick={handleMuteToggle}
-              title={isMuted ? "Unmute" : "Mute"}
-            >
-              M
-            </button>
-          )}
-          {onSolo && (
-            <button
-              className={cn(
-                "text-xs px-1 rounded",
-                isSolo ? "bg-green-100 text-green-800" : "bg-gray-100"
-              )}
-              onClick={handleSoloToggle}
-              title={isSolo ? "Unsolo" : "Solo"}
-            >
-              S
-            </button>
-          )}
+        <div className="flex items-center gap-2">
+          <TrackVersionSelector track={track} onVersionSelect={handleVersionSelect} />
+          <div className="flex gap-1">
+            {onMute && (
+              <button
+                type="button"
+                className={cn(
+                  "text-xs px-1 rounded",
+                  isMuted ? "bg-red-100 text-red-800" : "bg-gray-100"
+                )}
+                onClick={handleMuteToggle}
+                title={isMuted ? "Unmute" : "Mute"}
+              >
+                M
+              </button>
+            )}
+            {onSolo && (
+              <button
+                type="button"
+                className={cn(
+                  "text-xs px-1 rounded",
+                  isSolo ? "bg-green-100 text-green-800" : "bg-gray-100"
+                )}
+                onClick={handleSoloToggle}
+                title={isSolo ? "Unsolo" : "Solo"}
+              >
+                S
+              </button>
+            )}
+          </div>
         </div>
       </div>
       <div className="flex-1 h-10 bg-gray-100 rounded-none relative overflow-hidden">
-        {/* Progress bar only */}
         <div
-          className={cn("h-full transition-all", track.color)}
-          style={{
-            width: `${progressPercentage}%`,
-          }}
-        ></div>
-        {/* Track duration */}
+          className={cn("h-full transition-all", `bg-[${track.type === 'drums' ? '#1C3F95' : '#E31E24'}]`)}
+          style={{ width: `${progressPercentage}%` }}
+        />
         <div className="absolute right-2 top-1/2 transform -translate-y-1/2 text-xs font-mono">
           {track.duration}
         </div>

@@ -1,222 +1,247 @@
 "use client"
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
-import { CheckCircle, Clock, Download, GitBranch, MoreHorizontal, RotateCcw, Upload } from "lucide-react"
+import { CheckCircle, Clock, Tag, X } from "lucide-react"
+import { Project, Checkpoint } from "@/lib/types/project"
+import { versionService } from "@/services/project/version-service"
 import { cn } from "@/lib/utils"
-import { SAMPLE_VERSIONS } from "@/lib/constants"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
 
-export function VersionHistory() {
-  const [selectedVersion, setSelectedVersion] = useState<string | null>(null)
-  const versions = SAMPLE_VERSIONS
+interface VersionTrackerProps {
+  project: Project
+  onCreateCheckpoint: (name: string, label?: string, description?: string) => void
+  onApplyCheckpoint: (checkpointId: string) => void
+  className?: string
+}
 
-  const getVersionTypeColor = (type: string) => {
-    switch (type) {
-      case "upload":
-        return "bg-[#1C3F95]"
-      case "edit":
-        return "bg-[#E41E26]"
-      case "milestone":
-        return "bg-[#FFD500]"
-      default:
-        return "bg-black"
+export function VersionTracker({ project, onCreateCheckpoint, onApplyCheckpoint, className }: VersionTrackerProps) {
+  const [selectedCheckpoint, setSelectedCheckpoint] = useState<string | null>(null)
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
+  const [checkpointName, setCheckpointName] = useState(`Checkpoint ${project.checkpoints.length + 1}`)
+  const [checkpointLabel, setCheckpointLabel] = useState(`v${project.checkpoints.length + 1}.0`)
+  const [checkpointDescription, setCheckpointDescription] = useState("")
+
+  const formatTimestamp = (timestamp: string): string => {
+    const date = new Date(timestamp)
+    const now = new Date()
+    const diffMs = now.getTime() - date.getTime()
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
+    const diffDays = Math.floor(diffHours / 24)
+
+    if (diffDays > 0) {
+      return `${diffDays} day${diffDays > 1 ? "s" : ""} ago`
+    } else if (diffHours > 0) {
+      return `${diffHours} hour${diffHours > 1 ? "s" : ""} ago`
+    } else {
+      return "Just now"
     }
   }
 
-  const getVersionTypeIcon = (type: string) => {
-    switch (type) {
-      case "upload":
-        return <Upload className="h-3 w-3" />
-      case "edit":
-        return <GitBranch className="h-3 w-3" />
-      case "milestone":
-        return <CheckCircle className="h-3 w-3" />
-      default:
-        return <Clock className="h-3 w-3" />
+  // Get track version numbers for a checkpoint
+  const getTrackVersionsInfo = (checkpoint: Checkpoint): string[] => {
+    try {
+      if (!project || !project.tracks || !checkpoint) {
+        return ['No track data available']
+      }
+      
+      return project.tracks.map(track => {
+        try {
+          const versionId = checkpoint.trackVersions[track.id]
+          const version = versionService.getTrackVersion(track, versionId)
+          return `${track.name}: ${version?.number || 'N/A'}`
+        } catch (error) {
+          console.error(`Error getting version for track ${track.id}:`, error)
+          return `${track.name}: Error`
+        }
+      })
+    } catch (error) {
+      console.error("Error getting track versions info:", error)
+      return ['Error loading track versions']
     }
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold uppercase tracking-wide">Version History</h2>
-        <Button className="gap-2 bg-black text-white hover:bg-black/90 uppercase text-xs tracking-wide">
-          <CheckCircle className="h-4 w-4" />
-          Create Checkpoint
-        </Button>
-      </div>
-
-      <div className="space-y-4">
-        {versions.map((version, index) => (
-          <Card
-            key={version.id}
-            className={cn(
-              "border-2 transition-all cursor-pointer",
-              version.isCurrent ? "border-black bg-muted/50" : "border-gray-300 hover:border-black",
-              selectedVersion === version.id && "ring-2 ring-black ring-offset-2",
-            )}
-            onClick={() => setSelectedVersion(selectedVersion === version.id ? null : version.id)}
-          >
-            <div className={cn("h-2 w-full", getVersionTypeColor(version.type))}></div>
-            <CardHeader className="p-4 pb-2">
-              <div className="flex items-start justify-between">
-                <div className="flex items-start gap-3">
-                  <Avatar className="h-10 w-10 rounded-none">
-                    <AvatarImage src={version.user.avatar || "/placeholder.svg"} alt={version.user.name} />
-                    <AvatarFallback className="rounded-none bg-[#1C3F95] text-white">
-                      {version.user.name.charAt(0)}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <CardTitle className="text-base uppercase tracking-wide">{version.name}</CardTitle>
-                      <Badge
-                        variant="outline"
-                        className={cn(
-                          "gap-1 border-2 uppercase text-xs tracking-wide rounded-none",
-                          `border-${getVersionTypeColor(version.type).split("-")[1]}`,
-                        )}
-                      >
-                        {getVersionTypeIcon(version.type)}
-                        {version.type}
-                      </Badge>
-                      {version.isCurrent && (
-                        <Badge className="bg-black text-white uppercase text-xs tracking-wide rounded-none">
-                          Current
-                        </Badge>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className="text-sm font-medium uppercase tracking-wide">{version.user.name}</span>
-                      <span className="text-sm text-muted-foreground uppercase tracking-wide">{version.timestamp}</span>
-                      <span className="text-sm text-muted-foreground uppercase tracking-wide">
-                        Version {version.id}
-                      </span>
-                    </div>
+    <>
+      <Card className={cn("border-2 border-black", className)}>
+        <CardHeader>
+          <CardTitle className="text-lg uppercase tracking-wide flex items-center gap-2">
+            <Clock className="h-5 w-5" />
+            Project Checkpoints
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {project.checkpoints.length === 0 ? (
+            <p className="text-sm text-muted-foreground uppercase tracking-wide text-center py-4">
+              No checkpoints yet
+            </p>
+          ) : (
+            project.checkpoints.map((checkpoint) => (
+              <div
+                key={checkpoint.id}
+                className={cn(
+                  "border-2 p-3",
+                  project.currentCheckpointId === checkpoint.id
+                    ? "border-black bg-muted/50"
+                    : "border-gray-300 hover:border-black",
+                  selectedCheckpoint === checkpoint.id && "ring-2 ring-black ring-offset-2"
+                )}
+                onClick={() => setSelectedCheckpoint(
+                  selectedCheckpoint === checkpoint.id ? null : checkpoint.id
+                )}
+              >
+                <div className="flex items-start justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <Badge className="bg-[#F39C12] text-white rounded-none uppercase text-xs tracking-wide">
+                      <Tag className="h-4 w-4" />
+                      Checkpoint
+                    </Badge>
+                    <span className="text-sm font-medium uppercase tracking-wide">
+                      {checkpoint.label}
+                    </span>
                   </div>
+                  <span className="text-xs text-muted-foreground uppercase tracking-wide">
+                    {formatTimestamp(checkpoint.timestamp)}
+                  </span>
                 </div>
 
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                      <MoreHorizontal className="h-4 w-4" />
+                <p className="text-sm mb-2 uppercase tracking-wide">{checkpoint.name}</p>
+                
+                {checkpoint.description && (
+                  <p className="text-xs text-muted-foreground mb-2">{checkpoint.description}</p>
+                )}
+
+                <div className="mt-2 space-y-1">
+                  <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
+                    Track Versions:
+                  </p>
+                  {getTrackVersionsInfo(checkpoint).map((info, i) => (
+                    <Badge
+                      key={i}
+                      variant="outline"
+                      className="text-xs rounded-none block w-full"
+                    >
+                      {info}
+                    </Badge>
+                  ))}
+                </div>
+
+                {selectedCheckpoint === checkpoint.id && (
+                  <div className="mt-2 pt-2 border-t border-gray-200">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={(e: React.MouseEvent) => {
+                        try {
+                          e.stopPropagation()
+                          onApplyCheckpoint(checkpoint.id)
+                          setSelectedCheckpoint(null)
+                        } catch (error) {
+                          console.error("Error applying checkpoint:", error)
+                          // Could add toast notification here in the future
+                        }
+                      }}
+                      className="w-full border-2 border-black uppercase text-xs tracking-wide"
+                    >
+                      Apply Checkpoint
                     </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="border-2 border-black rounded-none">
-                    {!version.isCurrent && (
-                      <>
-                        <DropdownMenuItem className="gap-2 uppercase text-xs tracking-wide">
-                          <RotateCcw className="h-4 w-4" />
-                          Restore Version
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                      </>
-                    )}
-                    <DropdownMenuItem className="gap-2 uppercase text-xs tracking-wide">
-                      <Download className="h-4 w-4" />
-                      Download
-                    </DropdownMenuItem>
-                    <DropdownMenuItem className="gap-2 uppercase text-xs tracking-wide">
-                      <GitBranch className="h-4 w-4" />
-                      Create Branch
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            </CardHeader>
-
-            <CardContent className="p-4 pt-0">
-              <div className="space-y-3">
-                <div>
-                  <h4 className="text-sm font-medium uppercase tracking-wide mb-2">Changes Made:</h4>
-                  <ul className="space-y-1">
-                    {version.changes.map((change, changeIndex) => (
-                      <li key={changeIndex} className="text-sm text-muted-foreground flex items-start gap-2">
-                        <span className="text-black">•</span>
-                        <span>{change}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                {version.files && version.files.length > 0 && (
-                  <>
-                    <Separator />
-                    <div>
-                      <h4 className="text-sm font-medium uppercase tracking-wide mb-2">Files Added:</h4>
-                      <div className="flex flex-wrap gap-2">
-                        {version.files.map((file, fileIndex) => (
-                          <Badge
-                            key={fileIndex}
-                            variant="outline"
-                            className="border-2 border-black uppercase text-xs tracking-wide rounded-none"
-                          >
-                            {file}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                  </>
-                )}
-
-                {selectedVersion === version.id && (
-                  <>
-                    <Separator />
-                    <div className="flex gap-2">
-                      {!version.isCurrent && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="gap-1 border-2 border-black uppercase text-xs tracking-wide"
-                        >
-                          <RotateCcw className="h-4 w-4" />
-                          Restore This Version
-                        </Button>
-                      )}
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="gap-1 border-2 border-black uppercase text-xs tracking-wide"
-                      >
-                        <Download className="h-4 w-4" />
-                        Download
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="gap-1 border-2 border-black uppercase text-xs tracking-wide"
-                      >
-                        <GitBranch className="h-4 w-4" />
-                        Compare
-                      </Button>
-                    </div>
-                  </>
+                  </div>
                 )}
               </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+            ))
+          )}
 
-      {versions.map(
-        (version, index) =>
-          index < versions.length - 1 && (
-            <div className="flex justify-center">
-              <div className="w-px h-4 bg-border"></div>
+          <div className="pt-2 border-t border-black">
+            <Button
+              onClick={() => setIsCreateDialogOpen(true)}
+              className="w-full gap-2 bg-black text-white hover:bg-black/90 uppercase text-xs tracking-wide"
+            >
+              <CheckCircle className="h-4 w-4" />
+              Create Checkpoint
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+        <DialogContent className="border-2 border-black">
+          <DialogHeader>
+            <DialogTitle className="text-lg uppercase tracking-wide">Create New Checkpoint</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label htmlFor="name">Checkpoint Name</Label>
+              <Input 
+                id="name" 
+                value={checkpointName} 
+                onChange={(e) => setCheckpointName(e.target.value)}
+                className="border-2 border-black"
+              />
             </div>
-          ),
-      )}
-    </div>
-  )
+            
+            <div className="space-y-2">
+              <Label htmlFor="label">Version Label</Label>
+              <Input 
+                id="label" 
+                value={checkpointLabel} 
+                onChange={(e) => setCheckpointLabel(e.target.value)}
+                className="border-2 border-black"
+                placeholder="e.g. v1.0, v2.1"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="description">Description (Optional)</Label>
+              <Textarea 
+                id="description" 
+                value={checkpointDescription} 
+                onChange={(e) => setCheckpointDescription(e.target.value)}
+                className="border-2 border-black resize-none"
+                placeholder="Describe the changes in this checkpoint"
+                rows={3}
+              />
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setIsCreateDialogOpen(false)} 
+              className="border-2 border-black uppercase text-xs tracking-wide"
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={() => {
+                try {
+                  onCreateCheckpoint(
+                    checkpointName, 
+                    checkpointLabel, 
+                    checkpointDescription
+                  );
+                  setIsCreateDialogOpen(false);
+                  // Reset form fields for next time
+                  setCheckpointName(`Checkpoint ${project.checkpoints.length + 2}`);
+                  setCheckpointLabel(`v${project.checkpoints.length + 2}.0`);
+                  setCheckpointDescription("");
+                } catch (error) {
+                  console.error("Error creating checkpoint:", error);
+                  // Could add toast notification here in the future
+                }
+              }}
+              className="bg-black text-white hover:bg-black/90 uppercase text-xs tracking-wide"
+            >
+              Create
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
 }

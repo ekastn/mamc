@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { AuthProvider } from "@/context/auth-context"
 import { AuthGuard } from "@/components/auth/auth-guard"
 import Navigation from "@/components/navigation"
+import { Toaster } from "@/components/ui/toaster"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -32,6 +33,7 @@ export default function RootLayout({
               </div>
             </AuthGuard>
           </AuthProvider>
+          <Toaster />
         </ThemeProvider>
       </body>
     </html>

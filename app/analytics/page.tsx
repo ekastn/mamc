@@ -410,9 +410,8 @@ export default function AnalyticsPage() {
                           strokeWidth="20"
                           fill="none"
                           strokeDasharray="251.2"
-                          strokeDashoffset="125.6"
-                          className="stroke-[10]"
                           strokeDashoffset="188.4"
+                          className="stroke-[10]"
                         />
                         <circle
                           cx="50"

@@ -3,21 +3,24 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { MOODS } from "@/lib/constants/emotions";
 
 type Mood = {
     name: string;
     emoji: string;
     color: string;
+    textColor: string;
+    borderColor: string;
 };
 
 const moods: Mood[] = [
-    { name: "Happy", emoji: "■", color: "bg-[#FFD500]" },
-    { name: "Excited", emoji: "■", color: "bg-[#FFD500]" },
-    { name: "Calm", emoji: "■", color: "bg-[#1C3F95] text-white" },
-    { name: "Neutral", emoji: "■", color: "bg-black text-white" },
-    { name: "Tired", emoji: "■", color: "bg-[#1C3F95] text-white" },
-    { name: "Sad", emoji: "■", color: "bg-[#1C3F95] text-white" },
-    { name: "Frustrated", emoji: "■", color: "bg-[#E41E26] text-white" },
+    MOODS.HAPPY,
+    MOODS.EXCITED,
+    MOODS.CALM,
+    MOODS.NEUTRAL,
+    MOODS.TIRED,
+    MOODS.SAD,
+    MOODS.FRUSTRATED,
 ];
 
 export function MoodSelector() {
@@ -33,7 +36,8 @@ export function MoodSelector() {
                         className={cn(
                             "flex flex-col items-center gap-1 h-auto py-3 px-2 border-2 border-black transition-all",
                             selectedMood?.name === mood.name ? "ring-2 ring-black" : "",
-                            mood.color
+                            mood.color,
+                            mood.textColor
                         )}
                         onClick={() => setSelectedMood(mood)}
                     >

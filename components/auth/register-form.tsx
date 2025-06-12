@@ -8,8 +8,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Loader2, Mail, Lock, User } from "lucide-react"
-import { useAuth } from "@/context/auth-context"
+import { Loader2, Mail, Lock, User, AlertTriangle } from "lucide-react"
+import { useAuth, type AuthError } from "@/context/auth-context"
 import type { RegisterCredentials } from "@/lib/types"
 
 interface RegisterFormProps {
@@ -17,37 +17,93 @@ interface RegisterFormProps {
 }
 
 export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
-  const { register, isLoading } = useAuth()
+  const { register, isLoading, validateEmail, validatePassword } = useAuth()
   const [credentials, setCredentials] = useState<RegisterCredentials>({
     name: "",
     email: "",
     password: "",
     confirmPassword: "",
   })
-  const [error, setError] = useState("")
+  const [errors, setErrors] = useState<{
+    name?: string
+    email?: string
+    password?: string
+    confirmPassword?: string
+    general?: string
+  }>({})
+
+  const getErrorMessage = (error: AuthError): string => {
+    switch (error) {
+      case "email-already-in-use":
+        return "This email is already registered"
+      case "weak-password":
+        return "Password must be at least 8 characters with letters and numbers"
+      case "passwords-dont-match":
+        return "Passwords do not match"
+      case "network-error":
+        return "Network error. Please try again later"
+      case "invalid-format":
+        return "Invalid email format"
+      case "validation-error":
+        return "Please fill in all required fields"
+      case "server-error":
+        return "Server error. Please try again later"
+      default:
+        return "Registration failed. Please try again"
+    }
+  }
+
+  const validateForm = (): boolean => {
+    const newErrors: {
+      name?: string
+      email?: string
+      password?: string
+      confirmPassword?: string
+    } = {}
+
+    if (!credentials.name) {
+      newErrors.name = "Name is required"
+    } else if (credentials.name.length < 2) {
+      newErrors.name = "Name must be at least 2 characters"
+    }
+
+    if (!credentials.email) {
+      newErrors.email = "Email is required"
+    } else if (!validateEmail(credentials.email)) {
+      newErrors.email = "Please enter a valid email address"
+    }
+
+    if (!credentials.password) {
+      newErrors.password = "Password is required"
+    } else if (!validatePassword(credentials.password)) {
+      newErrors.password = "Password must be at least 8 characters with letters and numbers"
+    }
+
+    if (!credentials.confirmPassword) {
+      newErrors.confirmPassword = "Please confirm your password"
+    } else if (credentials.password !== credentials.confirmPassword) {
+      newErrors.confirmPassword = "Passwords do not match"
+    }
+
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setError("")
 
-    if (!credentials.name || !credentials.email || !credentials.password || !credentials.confirmPassword) {
-      setError("Please fill in all fields")
+    setErrors({})
+
+    if (!validateForm()) {
       return
     }
 
-    if (credentials.password !== credentials.confirmPassword) {
-      setError("Passwords do not match")
-      return
-    }
+    const result = await register(credentials)
 
-    if (credentials.password.length < 6) {
-      setError("Password must be at least 6 characters")
-      return
-    }
-
-    const success = await register(credentials)
-    if (!success) {
-      setError("Registration failed. Please try again.")
+    if (!result.success) {
+      setErrors({
+        general: getErrorMessage(result.error || "unknown-error"),
+      })
     }
   }
 
@@ -78,9 +134,17 @@ export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
                 placeholder="Enter your full name"
                 value={credentials.name}
                 onChange={handleChange("name")}
-                className="pl-10 border-2 border-black"
+                className={`pl-10 border-2 ${errors.name ? "border-[#E41E26]" : "border-black"}`}
                 disabled={isLoading}
+                aria-invalid={!!errors.name}
+                aria-describedby={errors.name ? "name-error" : undefined}
               />
+              {errors.name && (
+                <p id="name-error" className="text-xs text-[#E41E26] mt-1 flex items-center">
+                  <AlertTriangle className="h-3 w-3 mr-1" />
+                  {errors.name}
+                </p>
+              )}
             </div>
           </div>
 
@@ -96,9 +160,17 @@ export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
                 placeholder="Enter your email"
                 value={credentials.email}
                 onChange={handleChange("email")}
-                className="pl-10 border-2 border-black"
+                className={`pl-10 border-2 ${errors.email ? "border-[#E41E26]" : "border-black"}`}
                 disabled={isLoading}
+                aria-invalid={!!errors.email}
+                aria-describedby={errors.email ? "email-error" : undefined}
               />
+              {errors.email && (
+                <p id="email-error" className="text-xs text-[#E41E26] mt-1 flex items-center">
+                  <AlertTriangle className="h-3 w-3 mr-1" />
+                  {errors.email}
+                </p>
+              )}
             </div>
           </div>
 
@@ -114,9 +186,17 @@ export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
                 placeholder="Create a password"
                 value={credentials.password}
                 onChange={handleChange("password")}
-                className="pl-10 border-2 border-black"
+                className={`pl-10 border-2 ${errors.password ? "border-[#E41E26]" : "border-black"}`}
                 disabled={isLoading}
+                aria-invalid={!!errors.password}
+                aria-describedby={errors.password ? "password-error" : undefined}
               />
+              {errors.password && (
+                <p id="password-error" className="text-xs text-[#E41E26] mt-1 flex items-center">
+                  <AlertTriangle className="h-3 w-3 mr-1" />
+                  {errors.password}
+                </p>
+              )}
             </div>
           </div>
 
@@ -132,15 +212,26 @@ export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
                 placeholder="Confirm your password"
                 value={credentials.confirmPassword}
                 onChange={handleChange("confirmPassword")}
-                className="pl-10 border-2 border-black"
+                className={`pl-10 border-2 ${errors.confirmPassword ? "border-[#E41E26]" : "border-black"}`}
                 disabled={isLoading}
+                aria-invalid={!!errors.confirmPassword}
+                aria-describedby={errors.confirmPassword ? "confirm-password-error" : undefined}
               />
+              {errors.confirmPassword && (
+                <p id="confirm-password-error" className="text-xs text-[#E41E26] mt-1 flex items-center">
+                  <AlertTriangle className="h-3 w-3 mr-1" />
+                  {errors.confirmPassword}
+                </p>
+              )}
             </div>
           </div>
 
-          {error && (
+          {errors.general && (
             <Alert className="border-2 border-[#E41E26]">
-              <AlertDescription className="text-xs uppercase tracking-wide">{error}</AlertDescription>
+              <AlertDescription className="text-xs uppercase tracking-wide flex items-center">
+                <AlertTriangle className="h-4 w-4 mr-2" />
+                {errors.general}
+              </AlertDescription>
             </Alert>
           )}
 

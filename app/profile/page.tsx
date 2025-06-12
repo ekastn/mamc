@@ -577,7 +577,7 @@ export default function ProfilePage() {
                     <div className="space-y-0.5">
                       <Label className="text-sm uppercase tracking-wide">Project Updates</Label>
                       <p className="text-xs text-muted-foreground">
-                        Receive notifications about updates to projects you're involved in
+                        Receive notifications about updates to projects you&apos;re involved in
                       </p>
                     </div>
                     <Switch
