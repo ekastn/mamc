@@ -10,7 +10,6 @@ import {
   LogOut, 
   Home, 
   Music, 
-  BarChart3, 
   Users, 
   User, 
   Settings, 
@@ -31,8 +30,8 @@ import {
 const NAV_ITEMS = [
   { name: "Dashboard", href: "/", icon: Home },
   { name: "Projects", href: "/projects", icon: Music },
+  { name: "Activity", href: "/activity", icon: Bell },
   { name: "Collaborators", href: "/collaborators", icon: Users },
-  { name: "Analytics", href: "/analytics", icon: BarChart3 },
   { name: "Moderation", href: "/moderation", icon: Shield },
 ]
 

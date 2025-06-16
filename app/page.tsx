@@ -3,7 +3,6 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import Link from "next/link"
 import { ArrowRight, Music, Plus, Sparkles, Users } from "lucide-react"
 import { EmotionSelector } from "@/components/emotion-selector"
-import { getMoodColor } from "@/lib/utils"
 
 export default function Home() {
   return (
@@ -74,31 +73,7 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold uppercase tracking-wide">Recent Activity</h2>
-            </div>
 
-            <div className="space-y-4">
-              {recentActivity.map((activity, index) => (
-                <Card key={index} className="border-2 border-black overflow-hidden">
-                  <div className={`h-2 w-full ${activity.unread ? "bg-[#E41E26]" : "bg-black"}`}></div>
-                  <CardHeader className="p-4 pb-2">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <CardTitle className="text-base uppercase tracking-wide">{activity.title}</CardTitle>
-                        <CardDescription className="text-xs uppercase tracking-wide">{activity.time}</CardDescription>
-                      </div>
-                      {activity.unread && <div className="h-3 w-3 rounded-none bg-[#E41E26]"></div>}
-                    </div>
-                  </CardHeader>
-                  <CardContent className="p-4 pt-2">
-                    <p className="text-sm">{activity.description}</p>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
         </div>
 
         <div className="w-full md:w-80 space-y-6">
@@ -128,18 +103,28 @@ export default function Home() {
 
           <Card className="border-2 border-black overflow-hidden">
             <div className="h-2 w-full bg-[#1C3F95]"></div>
-            <CardHeader>
-              <CardTitle className="text-lg uppercase tracking-wide">Mood Trends</CardTitle>
-              <CardDescription className="text-xs uppercase tracking-wide">Your emotional patterns</CardDescription>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg uppercase tracking-wide">Recent Activity</CardTitle>
+              <CardDescription className="text-xs uppercase tracking-wide">Latest updates</CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="h-40 flex items-end gap-1">
-                {moodData.map((day, index) => (
-                  <div key={index} className="flex-1 flex flex-col items-center gap-1">
-                    <div className={`w-full ${getMoodColor(day.mood)}`} style={{ height: `${day.value * 100}%` }}></div>
-                    <span className="text-xs text-muted-foreground uppercase tracking-wide">{day.label}</span>
+            <CardContent className="space-y-3">
+              {recentActivity.slice(0, 2).map((activity, index) => (
+                <div key={index} className="border-b border-gray-200 pb-2 last:border-0 last:pb-0">
+                  <div className="flex items-start gap-2">
+                    <div className={`h-2 w-2 mt-2 ${activity.unread ? "bg-[#E41E26]" : "bg-black"}`}></div>
+                    <div>
+                      <p className="text-xs font-medium uppercase tracking-wide">{activity.title}</p>
+                      <p className="text-xs text-muted-foreground">{activity.time}</p>
+                    </div>
                   </div>
-                ))}
+                </div>
+              ))}
+              <div className="pt-1">
+                <Button variant="outline" size="sm" asChild className="w-full border-2 border-black uppercase text-xs tracking-wide">
+                  <Link href="/activity" className="flex items-center justify-center gap-1">
+                    View All Activity <ArrowRight className="h-3 w-3 ml-1" />
+                  </Link>
+                </Button>
               </div>
             </CardContent>
           </Card>
@@ -207,12 +192,4 @@ const suggestions = [
   },
 ]
 
-const moodData = [
-  { label: "M", value: 0.6, mood: "happy" },
-  { label: "T", value: 0.8, mood: "happy" },
-  { label: "W", value: 0.4, mood: "neutral" },
-  { label: "T", value: 0.3, mood: "sad" },
-  { label: "F", value: 0.5, mood: "neutral" },
-  { label: "S", value: 0.9, mood: "happy" },
-  { label: "S", value: 0.7, mood: "happy" },
-]
+

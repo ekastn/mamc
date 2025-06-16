@@ -43,6 +43,12 @@ All notable changes to this project will be documented in this file.
 - Standardized type imports across the codebase to use consistent paths.
 - Enhanced track version selection in Timeline component with proper audio source updates and playback state management.
 - Replaced MoodSelector with EmotionSelector in dashboard page to provide a more comprehensive emotion selection experience with a consistent UI across the application.
+- Removed Analytics page and related components to streamline the application's focus on core music collaboration features.
+- Replaced mood trends visualization in dashboard sidebar with a compact current activity component to provide more actionable information to users.
+- Renamed "Current Activity" to "Recent Activity" in the dashboard sidebar for clearer UI labeling.
+- Moved full recent activity display from the main dashboard content to a dedicated Activity page.
+- Added a new Activity navigation item to provide direct access to the activity feed.
+- Created a comprehensive activity page with filtering options for all, read, and unread activities.
 
 ### Fixed
 - Fixed "Cannot read properties of undefined (reading 'filter')" error in projects page by adding proper null checks.
