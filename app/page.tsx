@@ -8,6 +8,7 @@ import { ArrowRight, Music, Plus, Sparkles, Users } from "lucide-react"
 import { EmotionSelector } from "@/components/emotion-selector"
 import { projectService } from "@/services/project-service"
 import type { Project } from "@/lib/types"
+import { HarmonicCard, HarmonicCardContent, HarmonicCardFooter } from "@/components/ui/harmonic-card"
 
 export default function Home() {
   const [recentProjects, setRecentProjects] = useState<Project[]>([])
@@ -75,13 +76,15 @@ export default function Home() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {recentProjects.map((project) => (
-                  <Card key={project.id} className="border-2 border-black overflow-hidden">
-                    <div className={`h-2 w-full ${project.color || "bg-black"}`}></div>
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-lg uppercase tracking-wide">{project.title}</CardTitle>
-                      <CardDescription className="text-xs uppercase tracking-wide">{project.description}</CardDescription>
-                    </CardHeader>
-                    <CardContent className="pb-2">
+                  <HarmonicCard 
+                    key={project.id} 
+                    title={project.title}
+                    description={project.description}
+                    accentColor={project.color || "bg-black"}
+                    interactive={false}
+                    onClick={() => window.location.href = `/projects/${project.id}`}
+                  >
+                    <HarmonicCardContent className="pb-2">
                       <div className="flex justify-between text-sm">
                         <div className="flex items-center gap-1">
                           <Users className="h-4 w-4 text-muted-foreground" />
@@ -92,20 +95,20 @@ export default function Home() {
                           <span className="text-xs uppercase tracking-wide">{project.tracks?.length || 0} tracks</span>
                         </div>
                       </div>
-                    </CardContent>
-                    <CardFooter>
+                    </HarmonicCardContent>
+                    <HarmonicCardFooter>
                       <Button asChild className="w-full bg-black text-white hover:bg-black/90">
                         <Link href={`/projects/${project.id}`} className="uppercase text-xs tracking-wide">
                           Open Project
                         </Link>
                       </Button>
-                    </CardFooter>
-                  </Card>
+                    </HarmonicCardFooter>
+                  </HarmonicCard>
                 ))}
 
                 {recentProjects.length < 2 && (
-                  <Card className="border-2 border-dashed border-black">
-                    <CardContent className="flex flex-col items-center justify-center h-[180px]">
+                  <HarmonicCard className="border-2 border-dashed border-black" colorBar={false}>
+                    <HarmonicCardContent className="flex flex-col items-center justify-center h-[180px]">
                       <Button
                         variant="outline"
                         size="lg"
@@ -117,8 +120,8 @@ export default function Home() {
                           Create New Project
                         </Link>
                       </Button>
-                    </CardContent>
-                  </Card>
+                    </HarmonicCardContent>
+                  </HarmonicCard>
                 )}
               </div>
             )}
@@ -126,15 +129,12 @@ export default function Home() {
         </div>
 
         <div className="w-full md:w-80 space-y-6">
-          <Card className="border-2 border-black overflow-hidden">
-            <div className="h-2 w-full bg-[#FFD500]"></div>
-            <CardHeader>
-              <CardTitle className="text-lg uppercase tracking-wide">Suggestions</CardTitle>
-              <CardDescription className="text-xs uppercase tracking-wide">
-                Based on your recent activity
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
+          <HarmonicCard 
+            title="Suggestions"
+            description="Based on your recent activity"
+            accentColor="bg-[#FFD500]"
+          >
+            <HarmonicCardContent className="space-y-4">
               {suggestions.map((suggestion, index) => (
                 <div key={index} className="flex gap-3">
                   <Sparkles className="h-5 w-5 text-[#FFD500] flex-shrink-0 mt-0.5" />
@@ -147,16 +147,16 @@ export default function Home() {
                   </div>
                 </div>
               ))}
-            </CardContent>
-          </Card>
+            </HarmonicCardContent>
+          </HarmonicCard>
 
-          <Card className="border-2 border-black overflow-hidden">
-            <div className="h-2 w-full bg-[#1C3F95]"></div>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg uppercase tracking-wide">Recent Activity</CardTitle>
-              <CardDescription className="text-xs uppercase tracking-wide">Latest updates</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3">
+          <HarmonicCard 
+            title="Recent Activity"
+            description="Latest updates"
+            accentColor="bg-[#1C3F95]"
+            interactive={true}
+          >
+            <HarmonicCardContent className="space-y-3">
               {recentActivity.slice(0, 2).map((activity, index) => (
                 <div key={index} className="border-b border-gray-200 pb-2 last:border-0 last:pb-0">
                   <div className="flex items-start gap-2">
@@ -175,8 +175,8 @@ export default function Home() {
                   </Link>
                 </Button>
               </div>
-            </CardContent>
-          </Card>
+            </HarmonicCardContent>
+          </HarmonicCard>
         </div>
       </div>
     </div>

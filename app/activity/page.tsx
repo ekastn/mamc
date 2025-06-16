@@ -1,28 +1,52 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Search, Filter } from "lucide-react"
+import { Search } from "lucide-react"
 import Link from "next/link"
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
+import { HarmonicCard, HarmonicCardContent } from "@/components/ui/harmonic-card"
 
 export default function ActivityPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [filterType, setFilterType] = useState("all")
 
-  // Filter activities based on search query and type
-  const filteredActivities = recentActivity.filter((activity) => {
-    const matchesSearch = activity.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                          activity.description.toLowerCase().includes(searchQuery.toLowerCase())
-    
-    if (filterType === "all") return matchesSearch
-    if (filterType === "unread") return matchesSearch && activity.unread
-    if (filterType === "read") return matchesSearch && !activity.unread
-    
-    return matchesSearch
-  })
+  // Group activities into time-based sections
+  const groupedActivities = useMemo(() => {
+    // First filter activities based on search query and type
+    const filteredActivities = recentActivity.filter((activity) => {
+      const matchesSearch = activity.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                            activity.description.toLowerCase().includes(searchQuery.toLowerCase())
+      
+      if (filterType === "all") return matchesSearch
+      if (filterType === "unread") return matchesSearch && activity.unread
+      if (filterType === "read") return matchesSearch && !activity.unread
+      
+      return matchesSearch
+    })
+
+    // Then group filtered activities by time period
+    return {
+      today: filteredActivities.filter(activity => 
+        activity.time === "2 hours ago" || 
+        activity.time === "Just now" || 
+        activity.time.includes("minute") || 
+        activity.time.includes("hour")),
+      thisWeek: filteredActivities.filter(activity => 
+        activity.time === "Yesterday" || 
+        activity.time.includes("day") || 
+        activity.time === "1 week ago"),
+      others: filteredActivities.filter(activity => 
+        activity.time.includes("week") && activity.time !== "1 week ago" || 
+        activity.time.includes("month") || 
+        activity.time.includes("year"))
+    }
+  }, [searchQuery, filterType])
+
+  // Check if there are any activities to display
+  const hasActivities = Object.values(groupedActivities).some(group => group.length > 0)
 
   return (
     <div className="py-8">
@@ -71,27 +95,71 @@ export default function ActivityPage() {
           </Tabs>
         </div>
 
-        {/* Activity List */}
-        <div className="space-y-4">
-          {filteredActivities.map((activity, index) => (
-            <Card key={index} className="border-2 border-black overflow-hidden">
-              <div className={`h-2 w-full ${activity.unread ? "bg-[#E41E26]" : "bg-black"}`}></div>
-              <CardHeader className="p-4 pb-2">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <CardTitle className="text-base uppercase tracking-wide">{activity.title}</CardTitle>
-                    <CardDescription className="text-xs uppercase tracking-wide">{activity.time}</CardDescription>
-                  </div>
-                  {activity.unread && <div className="h-3 w-3 rounded-none bg-[#E41E26]"></div>}
-                </div>
-              </CardHeader>
-              <CardContent className="p-4 pt-2">
-                <p className="text-sm">{activity.description}</p>
-              </CardContent>
-            </Card>
-          ))}
+        {/* Activity List Grouped by Time */}
+        <div className="space-y-8">
+          {/* Today Section */}
+          {groupedActivities.today.length > 0 && (
+            <div>
+              <h2 className="text-xl font-bold tracking-tight uppercase mb-4">Today</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {groupedActivities.today.map((activity, index) => (
+                  <HarmonicCard 
+                    key={`today-${index}`} 
+                    title={activity.title}
+                    description={activity.time}
+                  >
+                    <HarmonicCardContent>
+                      <p className="text-sm">{activity.description}</p>
+                    </HarmonicCardContent>
+                  </HarmonicCard>
+                ))}
+              </div>
+            </div>
+          )}
 
-          {filteredActivities.length === 0 && (
+          {/* This Week Section */}
+          {groupedActivities.thisWeek.length > 0 && (
+            <div>
+              <h2 className="text-xl font-bold tracking-tight uppercase mb-4">This Week</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {groupedActivities.thisWeek.map((activity, index) => (
+                  <HarmonicCard 
+                    key={`week-${index}`} 
+                    title={activity.title}
+                    description={activity.time}
+                  >
+                    <HarmonicCardContent>
+                      <p className="text-sm">{activity.description}</p>
+                    </HarmonicCardContent>
+                  </HarmonicCard>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Others Section */}
+          {groupedActivities.others.length > 0 && (
+            <div>
+              <h2 className="text-xl font-bold tracking-tight uppercase mb-4">Older</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {groupedActivities.others.map((activity, index) => (
+                  <HarmonicCard 
+                    key={`others-${index}`} 
+                    title={activity.title}
+                    description={activity.time}
+                    isUnread={activity.unread}
+                  >
+                    <HarmonicCardContent>
+                      <p className="text-sm">{activity.description}</p>
+                    </HarmonicCardContent>
+                  </HarmonicCard>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* No Activities Message */}
+          {!hasActivities && (
             <div className="text-center py-12">
               <p className="text-lg font-medium uppercase tracking-wide mb-2">No activities found</p>
               <p className="text-muted-foreground uppercase text-sm tracking-wide mb-4">

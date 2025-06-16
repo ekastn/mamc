@@ -11,6 +11,7 @@ import { Filter, Plus, Search, UserPlus } from "lucide-react"
 import { getMoodColor } from "@/lib/utils"
 import { cn } from "@/lib/utils"
 import { useRouter } from "next/navigation"
+import { HarmonicCard, HarmonicCardContent } from "@/components/ui/harmonic-card"
 
 // Sample collaborators data
 const collaborators = [
@@ -177,83 +178,78 @@ export default function CollaboratorsPage() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredCollaborators.map((collaborator) => (
-                  <Card
+                  <HarmonicCard
                     key={collaborator.id}
-                    className="border-2 border-black overflow-hidden cursor-pointer hover:shadow-md transition-shadow"
+                    accentColor={getMoodColor(collaborator.mood)}
                     onClick={() => handleViewProfile(collaborator.id)}
                   >
-                    <div className={cn("h-2 w-full", getMoodColor(collaborator.mood))}></div>
-                    <CardHeader className="pb-2">
-                      <div className="flex items-start gap-4">
-                        <div className="relative">
-                          <Avatar className="h-12 w-12 rounded-none">
-                            <AvatarImage src={collaborator.avatar || "/placeholder.svg"} alt={collaborator.name} />
-                            <AvatarFallback className="rounded-none bg-[#1C3F95] text-white">
-                              {collaborator.name.charAt(0)}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div
-                            className={cn(
-                              "absolute -bottom-1 -right-1 h-3 w-3 border-2 border-background",
-                              getMoodColor(collaborator.mood),
-                            )}
-                          ></div>
-                        </div>
-                        <div>
-                          <CardTitle className="text-lg uppercase tracking-wide">{collaborator.name}</CardTitle>
-                          <CardDescription className="uppercase text-xs tracking-wide">
-                            @{collaborator.username}
-                          </CardDescription>
-                          <Badge className="mt-1 uppercase text-xs tracking-wide rounded-none bg-black text-white">
-                            {collaborator.role}
-                          </Badge>
+                    <HarmonicCardContent className="pb-0">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex items-start gap-3">
+                          <div className="relative">
+                            <Avatar className="h-12 w-12 rounded-none">
+                              <AvatarImage src={collaborator.avatar || "/placeholder.svg"} alt={collaborator.name} />
+                              <AvatarFallback className="rounded-none bg-[#1C3F95] text-white">
+                                {collaborator.name.charAt(0)}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div
+                              className={cn(
+                                "absolute -bottom-1 -right-1 h-3 w-3 border-2 border-background",
+                                getMoodColor(collaborator.mood),
+                              )}
+                            ></div>
+                          </div>
+                          <div>
+                            <h3 className="text-base font-medium uppercase tracking-wide">{collaborator.name}</h3>
+                            <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">@{collaborator.username}</p>
+                            <Badge className="uppercase text-xs tracking-wide rounded-none bg-black text-white">
+                              {collaborator.role}
+                            </Badge>
+                          </div>
                         </div>
                       </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-4">
-                        <div className="grid grid-cols-2 gap-2 text-sm">
-                          <div className="flex flex-col items-center p-2 border border-black">
-                            <span className="font-bold">{collaborator.projects}</span>
-                            <span className="text-xs uppercase tracking-wide text-muted-foreground">Projects</span>
-                          </div>
-                          <div className="flex flex-col items-center p-2 border border-black">
-                            <span className="font-bold">{collaborator.collaborations}</span>
-                            <span className="text-xs uppercase tracking-wide text-muted-foreground">
-                              Collaborations
-                            </span>
-                          </div>
+                      <div className="grid grid-cols-2 gap-2 text-sm mb-4">
+                        <div className="flex flex-col items-center p-2 border border-black">
+                          <span className="font-bold">{collaborator.projects}</span>
+                          <span className="text-xs uppercase tracking-wide text-muted-foreground">Projects</span>
                         </div>
-
-                        <div className="space-y-1">
-                          <h4 className="text-xs uppercase tracking-wide text-muted-foreground">Skills</h4>
-                          <div className="flex flex-wrap gap-1">
-                            {collaborator.skills.map((skill, index) => (
-                              <Badge
-                                key={index}
-                                variant="outline"
-                                className="uppercase text-xs tracking-wide rounded-none border-2 border-[#1C3F95]"
-                              >
-                                {skill}
-                              </Badge>
-                            ))}
-                          </div>
+                        <div className="flex flex-col items-center p-2 border border-black">
+                          <span className="font-bold">{collaborator.collaborations}</span>
+                          <span className="text-xs uppercase tracking-wide text-muted-foreground">
+                            Collaborations
+                          </span>
                         </div>
-
-                        <Button
-                          variant="outline"
-                          className="w-full border-2 border-black uppercase text-xs tracking-wide"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            alert(`Invite ${collaborator.name} to project functionality would be implemented here`)
-                          }}
-                        >
-                          <Plus className="h-4 w-4 mr-1" />
-                          Invite to Project
-                        </Button>
                       </div>
-                    </CardContent>
-                  </Card>
+
+                      <div className="space-y-2 mb-4">
+                        <h4 className="text-xs uppercase tracking-wide text-muted-foreground">Skills</h4>
+                        <div className="flex flex-wrap gap-1">
+                          {collaborator.skills.map((skill, index) => (
+                            <Badge
+                              key={index}
+                              variant="outline"
+                              className="uppercase text-xs tracking-wide rounded-none border-2 border-[#1C3F95]"
+                            >
+                              {skill}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+
+                      <Button
+                        variant="outline"
+                        className="w-full mb-4 border-2 border-black uppercase text-xs tracking-wide"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          alert(`Invite ${collaborator.name} to project functionality would be implemented here`)
+                        }}
+                      >
+                        <Plus className="h-4 w-4 mr-1" />
+                        Invite to Project
+                      </Button>
+                    </HarmonicCardContent>
+                  </HarmonicCard>
                 ))}
               </div>
             )}

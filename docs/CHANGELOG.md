@@ -1,6 +1,15 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
+All notab- Added track version selection functionality in the timeline component, allowing users to switch between different versions of audio tracks with seamless playback transition.
+- Added loading skeletons to dashboard page for better user experience while fetching data.
+- Created a reusable `HarmonicCard` component to unify card styling across the application, making it more maintainable and ensuring consistent styling.
+- Enhanced `HarmonicCard` component with expanded Bauhaus-inspired hover animations including geometric shapes, shadow effects, and subtle content movements that follow Bauhaus design principles.
+- Simplified `HarmonicCard` component API by replacing multiple variant options with a single `interactive` boolean prop, making it more intuitive and easier to use.
+- Improved moderation page layout with Bauhaus-inspired grid structure, better visual hierarchy, and clearer content organization, creating a more functional and aesthetically pleasing UI.
+- Enhanced conflict cards in the moderation interface with consistent visual elements, proper spacing, and clear content sections following Bauhaus design principles.
+- Redesigned detailed conflict view with a two-column grid layout, geometric visual elements, and stronger visual hierarchy to improve usability and aesthetic appeal.
+- Updated resolution dialog with consistent grid-based layout and visual elements that align with Bauhaus design language throughout the application.
+- Added summary metrics to the moderation page header to provide at-a-glance status information in a clean grid-based layout.changes to this project will be documented in this file.
 
 ## [Unreleased]
 
@@ -22,6 +31,7 @@ All notable changes to this project will be documented in this file.
 - Enhanced constants index file with explicit exports of commonly used constants for better IDE support and developer experience.
 - Implemented track version selection functionality in the timeline component, allowing users to switch between different versions of audio tracks with seamless playback transition.
 - Added loading skeletons to dashboard page for better user experience while fetching data.
+- Created a reusable `HarmonicCard` component to unify card styling across the application, making it more maintainable and ensuring consistent styling.
 
 ### Changed
 - Updated VersionTracker component to use real checkpoint functionality instead of placeholder code.
@@ -48,10 +58,19 @@ All notable changes to this project will be documented in this file.
 - Replaced mood trends visualization in dashboard sidebar with a compact current activity component to provide more actionable information to users.
 - Renamed "Current Activity" to "Recent Activity" in the dashboard sidebar for clearer UI labeling.
 - Moved full recent activity display from the main dashboard content to a dedicated Activity page.
+- Improved collaborator card layout to follow stronger grid-based design principles, fixing the stacked appearance and creating a more balanced visual hierarchy.
+- Enhanced `HarmonicCard` component with Bauhaus-inspired hover animations including elevation effect, expanding color bar, and geometric corner indicator for a more dynamic user experience.
+- Improved collaborator card layout to follow stronger grid-based design principles, fixing the stacked appearance and creating a more balanced visual hierarchy.
 - Added a new Activity navigation item to provide direct access to the activity feed.
+- Refactored card components across multiple pages to use the new reusable `HarmonicCard` component, ensuring consistent card styling and behavior throughout the application.
 - Created a comprehensive activity page with filtering options for all, read, and unread activities.
 - Updated dashboard to fetch projects from project service instead of using hardcoded data, making the application more dynamic.
 - Improved projects page filtering with categorical tabs (All Projects, My Projects, Shared With Me, Archived) instead of tag-based filtering for better organization and user experience.
+- Reorganized Activity page into time-based sections (Today, This Week, Older) for better visualization and organization of updates.
+- Simplified `HarmonicCard` component API by replacing multiple variant options with a single boolean prop called `interactive`, improving maintainability and reducing CSS bundle size.
+- Updated conflict moderation page to use the `HarmonicCard` component, providing consistent styling and enhanced Bauhaus-inspired hover animations.
+- Improved conflict moderation page layout with proper grid-based structure according to Bauhaus design principles, enhancing visual organization and information hierarchy.
+- Enhanced conflict card content with better spacing, improved participant display, and more intuitive action buttons placement.
 
 ### Fixed
 - Fixed "Cannot read properties of undefined (reading 'filter')" error in projects page by adding proper null checks.

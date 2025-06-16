@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Separator } from "@/components/ui/separator"
 import { Label } from "@/components/ui/label"
@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input"
 import { Slider } from "@/components/ui/slider"
 import { Save } from "lucide-react"
+import { HarmonicCard, HarmonicCardContent } from "@/components/ui/harmonic-card"
 
 export default function SettingsPage() {
   const [theme, setTheme] = useState("system")
@@ -82,14 +83,12 @@ export default function SettingsPage() {
           </TabsList>
 
           <TabsContent value="appearance" className="space-y-6">
-            <Card className="border-2 border-black">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg uppercase tracking-wide">Appearance Settings</CardTitle>
-                <CardDescription className="uppercase text-xs tracking-wide">
-                  Customize how the application looks
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
+            <HarmonicCard
+              title="Appearance Settings"
+              description="Customize how the application looks"
+              interactive={true}
+            >
+              <HarmonicCardContent className="space-y-6">
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <Label className="text-sm uppercase tracking-wide">Theme</Label>
@@ -157,19 +156,16 @@ export default function SettingsPage() {
                     <Switch checked={autoSave} onCheckedChange={setAutoSave} />
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+              </HarmonicCardContent>
+            </HarmonicCard>
           </TabsContent>
 
           <TabsContent value="audio" className="space-y-6">
-            <Card className="border-2 border-black">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg uppercase tracking-wide">Audio Settings</CardTitle>
-                <CardDescription className="uppercase text-xs tracking-wide">
-                  Configure audio playback and recording preferences
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
+            <HarmonicCard
+              title="Audio Settings"
+              description="Configure audio playback and recording preferences"
+            >
+              <HarmonicCardContent className="space-y-6">
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <Label className="text-sm uppercase tracking-wide">Audio Quality</Label>
@@ -231,19 +227,16 @@ export default function SettingsPage() {
                     <Switch checked={cacheAudio} onCheckedChange={setCacheAudio} />
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+              </HarmonicCardContent>
+            </HarmonicCard>
           </TabsContent>
 
           <TabsContent value="timeline" className="space-y-6">
-            <Card className="border-2 border-black">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg uppercase tracking-wide">Timeline Settings</CardTitle>
-                <CardDescription className="uppercase text-xs tracking-wide">
-                  Configure timeline and waveform display preferences
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
+            <HarmonicCard
+              title="Timeline Settings"
+              description="Configure timeline and waveform display preferences"
+            >
+              <HarmonicCardContent className="space-y-6">
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div className="space-y-0.5">
@@ -280,19 +273,16 @@ export default function SettingsPage() {
                     <Switch checked={showEmotionIndicators} onCheckedChange={setShowEmotionIndicators} />
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+              </HarmonicCardContent>
+            </HarmonicCard>
           </TabsContent>
 
           <TabsContent value="storage" className="space-y-6">
-            <Card className="border-2 border-black">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg uppercase tracking-wide">Storage Settings</CardTitle>
-                <CardDescription className="uppercase text-xs tracking-wide">
-                  Configure storage and backup preferences
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
+            <HarmonicCard
+              title="Storage Settings"
+              description="Configure storage and backup preferences"
+            >
+              <HarmonicCardContent className="space-y-6">
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <Label className="text-sm uppercase tracking-wide">Storage Limit</Label>
@@ -377,8 +367,8 @@ export default function SettingsPage() {
                     <Switch checked={autoDeleteOldVersions} onCheckedChange={setAutoDeleteOldVersions} />
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+              </HarmonicCardContent>
+            </HarmonicCard>
           </TabsContent>
         </Tabs>
       </div>

@@ -2,13 +2,13 @@
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Search, Plus, Grid, List, Music, Users, Clock } from "lucide-react"
 import Link from "next/link"
 import { projectService } from "@/services/project-service"
+import { HarmonicCard, HarmonicCardContent, HarmonicCardFooter } from "@/components/ui/harmonic-card"
 
 export default function ProjectsPage() {
   const [searchQuery, setSearchQuery] = useState("")
@@ -114,28 +114,25 @@ export default function ProjectsPage() {
         {/* Projects Grid/List */}
         <div className={viewMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" : "space-y-4"}>
           {filteredProjects.map((project) => (
-            <Card key={project.id} className="border-2 border-black overflow-hidden">
-              <div className={`h-2 w-full ${project.color}`}></div>
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <CardTitle className="text-lg uppercase tracking-wide">{project.title}</CardTitle>
-                    <CardDescription className="text-xs uppercase tracking-wide mt-1">
-                      {project.description}
-                    </CardDescription>
-                  </div>
-                  {project.checkpoints && project.checkpoints.length > 0 && project.currentCheckpointId ? (
-                    <Badge variant="outline" className="border-2 border-black uppercase text-xs tracking-wide">
-                      {project.checkpoints.find(cp => cp.id === project.currentCheckpointId)?.label || 'v1.0'}
-                    </Badge>
-                  ) : (
-                    <Badge variant="outline" className="border-2 border-black uppercase text-xs tracking-wide">
-                      No version
-                    </Badge>
-                  )}
-                </div>
-              </CardHeader>
-              <CardContent className="pb-3">
+            <HarmonicCard 
+              key={project.id} 
+              title={project.title}
+              description={project.description}
+              accentColor={project.color}
+              headerClassName="pb-3"
+            >
+              <div className="flex items-start justify-between absolute top-4 right-4">
+                {project.checkpoints && project.checkpoints.length > 0 && project.currentCheckpointId ? (
+                  <Badge variant="outline" className="border-2 border-black uppercase text-xs tracking-wide">
+                    {project.checkpoints.find(cp => cp.id === project.currentCheckpointId)?.label || 'v1.0'}
+                  </Badge>
+                ) : (
+                  <Badge variant="outline" className="border-2 border-black uppercase text-xs tracking-wide">
+                    No version
+                  </Badge>
+                )}
+              </div>
+              <HarmonicCardContent className="pb-3">
                 <div className="space-y-3">
                   <div className="flex items-center justify-between text-sm">
                     <div className="flex items-center gap-1">
@@ -182,16 +179,16 @@ export default function ProjectsPage() {
                     )}
                   </div>
                 </div>
-              </CardContent>
-              <CardFooter>
+              </HarmonicCardContent>
+              <HarmonicCardFooter>
                 <Button
                   asChild
                   className="w-full bg-black text-white hover:bg-black/90 uppercase text-xs tracking-wide"
                 >
                   <Link href={`/projects/${project.id}`}>Open Project</Link>
                 </Button>
-              </CardFooter>
-            </Card>
+              </HarmonicCardFooter>
+            </HarmonicCard>
           ))}
         </div>
 
