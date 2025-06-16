@@ -6,6 +6,8 @@ All notab- Added track version selection functionality in the timeline component
 - Enhanced `HarmonicCard` component with expanded Bauhaus-inspired hover animations including geometric shapes, shadow effects, and subtle content movements that follow Bauhaus design principles.
 - Simplified `HarmonicCard` component API by replacing multiple variant options with a single `interactive` boolean prop, making it more intuitive and easier to use.
 - Improved moderation page layout with Bauhaus-inspired grid structure, better visual hierarchy, and clearer content organization, creating a more functional and aesthetically pleasing UI.
+### Fixed
+- Fixed track progress visualization in the TrackItem component by correcting how background colors are applied, ensuring the playback progress is properly displayed.
 - Enhanced conflict cards in the moderation interface with consistent visual elements, proper spacing, and clear content sections following Bauhaus design principles.
 - Redesigned detailed conflict view with a two-column grid layout, geometric visual elements, and stronger visual hierarchy to improve usability and aesthetic appeal.
 - Updated resolution dialog with consistent grid-based layout and visual elements that align with Bauhaus design language throughout the application.

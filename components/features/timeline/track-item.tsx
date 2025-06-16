@@ -101,8 +101,11 @@ export function TrackItem({
       </div>
       <div className="flex-1 h-10 bg-gray-100 rounded-none relative overflow-hidden">
         <div
-          className={cn("h-full transition-all", `bg-[${track.type === 'drums' ? '#1C3F95' : '#E31E24'}]`)}
-          style={{ width: `${progressPercentage}%` }}
+          className="h-full transition-all"
+          style={{ 
+            width: `${progressPercentage}%`, 
+            backgroundColor: '#E31E24'
+          }}
         />
         <div className="absolute right-2 top-1/2 transform -translate-y-1/2 text-xs font-mono">
           {track.duration}
