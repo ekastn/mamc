@@ -13,7 +13,7 @@ import { projectService } from "@/services/project-service"
 export default function ProjectsPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
-  const [filterTag, setFilterTag] = useState<string>("all")
+  const [filterCategory, setFilterCategory] = useState<string>("all")
 
   const projects = projectService.getAllProjects() || []
 
@@ -21,11 +21,15 @@ export default function ProjectsPage() {
     const matchesSearch =
       project.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       project.description.toLowerCase().includes(searchQuery.toLowerCase())
-    const matchesFilter = filterTag === "all" || project.tags.includes(filterTag)
-    return matchesSearch && matchesFilter
+    
+    // Filter projects based on category
+    if (filterCategory === "all") return matchesSearch
+    if (filterCategory === "my") return matchesSearch && project.owner?.id === "user-1" // Assuming current user id is user-1
+    if (filterCategory === "shared") return matchesSearch && project.collaborators.some(c => c.id !== "user-1" && c.id !== project.owner?.id)
+    if (filterCategory === "archived") return matchesSearch && project.archived === true
+    
+    return matchesSearch
   })
-
-  const allTags = Array.from(new Set(projects.flatMap((p) => p.tags)))
 
   return (
     <div className="py-8">
@@ -77,24 +81,33 @@ export default function ProjectsPage() {
           </div>
         </div>
 
-        {/* Filter Tags */}
-        <Tabs value={filterTag} onValueChange={setFilterTag}>
-          <TabsList className="border-2 border-black p-0 h-auto">
+        {/* Filter Categories */}
+        <Tabs value={filterCategory} onValueChange={setFilterCategory}>
+          <TabsList className="grid grid-cols-4 border-2 border-black p-0 h-auto">
             <TabsTrigger
               value="all"
               className="uppercase text-xs tracking-wide py-2 rounded-none data-[state=active]:bg-black data-[state=active]:text-white"
             >
               All Projects
             </TabsTrigger>
-            {allTags.slice(0, 4).map((tag) => (
-              <TabsTrigger
-                key={tag}
-                value={tag}
-                className="uppercase text-xs tracking-wide py-2 rounded-none data-[state=active]:bg-black data-[state=active]:text-white"
-              >
-                {tag}
-              </TabsTrigger>
-            ))}
+            <TabsTrigger
+              value="my"
+              className="uppercase text-xs tracking-wide py-2 rounded-none data-[state=active]:bg-black data-[state=active]:text-white"
+            >
+              My Projects
+            </TabsTrigger>
+            <TabsTrigger
+              value="shared"
+              className="uppercase text-xs tracking-wide py-2 rounded-none data-[state=active]:bg-black data-[state=active]:text-white"
+            >
+              Shared With Me
+            </TabsTrigger>
+            <TabsTrigger
+              value="archived"
+              className="uppercase text-xs tracking-wide py-2 rounded-none data-[state=active]:bg-black data-[state=active]:text-white"
+            >
+              Archived
+            </TabsTrigger>
           </TabsList>
         </Tabs>
 

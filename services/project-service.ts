@@ -1,5 +1,5 @@
 import type { Project, Comment, Version } from "@/lib/types/index"
-import { SAMPLE_PROJECTS, SAMPLE_COMMENTS, SAMPLE_VERSIONS } from "@/lib/constants"
+import { SAMPLE_PROJECTS, SAMPLE_COMMENTS, SAMPLE_VERSIONS } from "@/lib/constants/index"
 import { versionService } from "./project/version-service"
 
 class ProjectService {

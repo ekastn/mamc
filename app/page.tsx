@@ -1,10 +1,36 @@
+"use client"
+
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import Link from "next/link"
 import { ArrowRight, Music, Plus, Sparkles, Users } from "lucide-react"
 import { EmotionSelector } from "@/components/emotion-selector"
+import { projectService } from "@/services/project-service"
+import type { Project } from "@/lib/types"
 
 export default function Home() {
+  const [recentProjects, setRecentProjects] = useState<Project[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    // Fetch projects from the service
+    const fetchProjects = () => {
+      try {
+        const allProjects = projectService.getAllProjects()
+        // Get the 2 most recent projects
+        const recent = allProjects.slice(0, 2)
+        setRecentProjects(recent)
+      } catch (error) {
+        console.error("Error fetching projects:", error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchProjects()
+  }, [])
+
   return (
     <div className="py-8">
       <div className="flex flex-col md:flex-row gap-8 items-start">
@@ -25,55 +51,78 @@ export default function Home() {
               </Button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {recentProjects.map((project) => (
-                <Card key={project.id} className="border-2 border-black overflow-hidden">
-                  <div className={`h-2 w-full ${project.color}`}></div>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-lg uppercase tracking-wide">{project.title}</CardTitle>
-                    <CardDescription className="text-xs uppercase tracking-wide">{project.description}</CardDescription>
-                  </CardHeader>
-                  <CardContent className="pb-2">
-                    <div className="flex justify-between text-sm">
-                      <div className="flex items-center gap-1">
-                        <Users className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-xs uppercase tracking-wide">{project.collaborators} collaborators</span>
+            {isLoading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {[1, 2].map((i) => (
+                  <Card key={i} className="border-2 border-black overflow-hidden">
+                    <div className="h-2 w-full bg-gray-200"></div>
+                    <CardHeader className="pb-2">
+                      <div className="h-6 w-3/4 bg-gray-200 rounded"></div>
+                      <div className="h-4 w-1/2 bg-gray-200 rounded mt-2"></div>
+                    </CardHeader>
+                    <CardContent className="pb-2">
+                      <div className="flex justify-between">
+                        <div className="h-4 w-1/3 bg-gray-200 rounded"></div>
+                        <div className="h-4 w-1/3 bg-gray-200 rounded"></div>
                       </div>
-                      <div className="flex items-center gap-1">
-                        <Music className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-xs uppercase tracking-wide">{project.tracks} tracks</span>
+                    </CardContent>
+                    <CardFooter>
+                      <div className="h-9 w-full bg-gray-200 rounded"></div>
+                    </CardFooter>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {recentProjects.map((project) => (
+                  <Card key={project.id} className="border-2 border-black overflow-hidden">
+                    <div className={`h-2 w-full ${project.color || "bg-black"}`}></div>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-lg uppercase tracking-wide">{project.title}</CardTitle>
+                      <CardDescription className="text-xs uppercase tracking-wide">{project.description}</CardDescription>
+                    </CardHeader>
+                    <CardContent className="pb-2">
+                      <div className="flex justify-between text-sm">
+                        <div className="flex items-center gap-1">
+                          <Users className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-xs uppercase tracking-wide">{project.collaborators?.length || 0} collaborators</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Music className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-xs uppercase tracking-wide">{project.tracks?.length || 0} tracks</span>
+                        </div>
                       </div>
-                    </div>
-                  </CardContent>
-                  <CardFooter>
-                    <Button asChild className="w-full bg-black text-white hover:bg-black/90">
-                      <Link href={`/projects/${project.id}`} className="uppercase text-xs tracking-wide">
-                        Open Project
-                      </Link>
-                    </Button>
-                  </CardFooter>
-                </Card>
-              ))}
+                    </CardContent>
+                    <CardFooter>
+                      <Button asChild className="w-full bg-black text-white hover:bg-black/90">
+                        <Link href={`/projects/${project.id}`} className="uppercase text-xs tracking-wide">
+                          Open Project
+                        </Link>
+                      </Button>
+                    </CardFooter>
+                  </Card>
+                ))}
 
-              <Card className="border-2 border-dashed border-black">
-                <CardContent className="flex flex-col items-center justify-center h-[180px]">
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    className="gap-2 border-2 border-black uppercase text-xs tracking-wide"
-                    asChild
-                  >
-                    <Link href="/projects/new">
-                      <Plus className="h-4 w-4" />
-                      Create New Project
-                    </Link>
-                  </Button>
-                </CardContent>
-              </Card>
-            </div>
+                {recentProjects.length < 2 && (
+                  <Card className="border-2 border-dashed border-black">
+                    <CardContent className="flex flex-col items-center justify-center h-[180px]">
+                      <Button
+                        variant="outline"
+                        size="lg"
+                        className="gap-2 border-2 border-black uppercase text-xs tracking-wide"
+                        asChild
+                      >
+                        <Link href="/projects/new">
+                          <Plus className="h-4 w-4" />
+                          Create New Project
+                        </Link>
+                      </Button>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
+            )}
           </div>
-
-
         </div>
 
         <div className="w-full md:w-80 space-y-6">
@@ -134,25 +183,7 @@ export default function Home() {
   )
 }
 
-const recentProjects = [
-  {
-    id: "1",
-    title: "Summer Vibes EP",
-    description: "Electronic dance collaboration",
-    collaborators: 4,
-    tracks: 6,
-    color: "bg-[#E41E26]",
-  },
-  {
-    id: "2",
-    title: "Acoustic Sessions",
-    description: "Unplugged versions of popular tracks",
-    collaborators: 2,
-    tracks: 3,
-    color: "bg-[#1C3F95]",
-  },
-]
-
+// Activity data (will be replaced with service later)
 const recentActivity = [
   {
     title: "Alex commented on 'Summer Vibes EP'",
@@ -174,6 +205,7 @@ const recentActivity = [
   },
 ]
 
+// Suggestion data (will be replaced with service later)
 const suggestions = [
   {
     title: "Respond to Alex's comment",

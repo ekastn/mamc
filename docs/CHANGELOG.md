@@ -21,6 +21,7 @@ All notable changes to this project will be documented in this file.
 - Added file upload simulation with progress tracking for audio files.
 - Enhanced constants index file with explicit exports of commonly used constants for better IDE support and developer experience.
 - Implemented track version selection functionality in the timeline component, allowing users to switch between different versions of audio tracks with seamless playback transition.
+- Added loading skeletons to dashboard page for better user experience while fetching data.
 
 ### Changed
 - Updated VersionTracker component to use real checkpoint functionality instead of placeholder code.
@@ -49,6 +50,8 @@ All notable changes to this project will be documented in this file.
 - Moved full recent activity display from the main dashboard content to a dedicated Activity page.
 - Added a new Activity navigation item to provide direct access to the activity feed.
 - Created a comprehensive activity page with filtering options for all, read, and unread activities.
+- Updated dashboard to fetch projects from project service instead of using hardcoded data, making the application more dynamic.
+- Improved projects page filtering with categorical tabs (All Projects, My Projects, Shared With Me, Archived) instead of tag-based filtering for better organization and user experience.
 
 ### Fixed
 - Fixed "Cannot read properties of undefined (reading 'filter')" error in projects page by adding proper null checks.
