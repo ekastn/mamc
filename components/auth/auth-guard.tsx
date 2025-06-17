@@ -1,45 +1,47 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useAuth } from "@/context/auth-context"
-import { LoginForm } from "./login-form"
-import { RegisterForm } from "./register-form"
-import { useState } from "react"
-import { Loader2 } from "lucide-react"
+import { useAuth } from "@/context/auth-context";
+import { Loader2 } from "lucide-react";
+import LandingPage from "../landing-page";
+import { usePathname } from "next/navigation";
 
 interface AuthGuardProps {
-  children: React.ReactNode
+    children: React.ReactNode;
 }
 
 export function AuthGuard({ children }: AuthGuardProps) {
-  const { user, isLoading } = useAuth()
-  const [showRegister, setShowRegister] = useState(false)
+    const { user, isLoading } = useAuth();
+    const pathname = usePathname();
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto" />
-          <p className="text-sm text-muted-foreground uppercase tracking-wide">Loading...</p>
-        </div>
-      </div>
-    )
-  }
+    if (isLoading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="text-center space-y-4">
+                    <Loader2 className="h-8 w-8 animate-spin mx-auto" />
+                    <p className="text-sm text-muted-foreground uppercase tracking-wide">
+                        Loading...
+                    </p>
+                </div>
+            </div>
+        );
+    }
 
-  if (!user?.isAuthenticated) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4">
-        <div className="w-full max-w-md">
-          {showRegister ? (
-            <RegisterForm onSwitchToLogin={() => setShowRegister(false)} />
-          ) : (
-            <LoginForm onSwitchToRegister={() => setShowRegister(true)} />
-          )}
-        </div>
-      </div>
-    )
-  }
+    const isAuthRoute = pathname === "/login" || pathname === "/register";
 
-  return <>{children}</>
+    if (!user?.isAuthenticated && !isAuthRoute) {
+        if (isAuthRoute) {
+            return <>{children}</>;
+        }
+
+        return <LandingPage />;
+    }
+
+    if (user?.isAuthenticated && isAuthRoute) {
+        window.location.href = "/";
+        return null;
+    }
+
+    return <>{children}</>;
 }

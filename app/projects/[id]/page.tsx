@@ -60,9 +60,9 @@ export default function ProjectPage({ params }: { params: { id: string } }) {
       {showSidebar && <ProjectSidebar project={project} />}
 
       <div className="flex-1 flex flex-col h-full overflow-hidden">
-        <ProjectHeader 
-          title={project.title} 
-          version={project.version || "v1.0"} 
+        <ProjectHeader
+          title={project.title}
+          version={project.version || "v1.0"}
           onToggleSidebar={handleToggleSidebar}
           currentCheckpointLabel={
             project.currentCheckpointId && project.checkpoints
@@ -74,7 +74,7 @@ export default function ProjectPage({ params }: { params: { id: string } }) {
             // Determine if this is a new track or an existing one
             const isNewTrack = !project.tracks.some(track => track.id === trackId);
             const trackName = isNewTrack ? `New Track ${project.tracks.length + 1}` : "";
-            
+
             // Call the service to handle the upload
             const success = projectService.uploadTrackVersion(
               project.id,
@@ -84,7 +84,7 @@ export default function ProjectPage({ params }: { params: { id: string } }) {
               isNewTrack,
               trackName
             );
-            
+
             if (success) {
               // Refresh the project data
               setProject(projectService.getProjectById(project.id));
