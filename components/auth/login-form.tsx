@@ -2,7 +2,8 @@
 
 import type React from "react";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,7 +13,8 @@ import { useAuth, type AuthError } from "@/context/auth-context";
 import type { LoginCredentials } from "@/lib/types";
 
 export function LoginForm() {
-    const { login, isLoading, validateEmail } = useAuth();
+    const { login, isLoading, validateEmail, user } = useAuth();
+    const router = useRouter();
     const [credentials, setCredentials] = useState<LoginCredentials>({
         email: "",
         password: "",
@@ -22,6 +24,13 @@ export function LoginForm() {
         password?: string;
         general?: string;
     }>({});
+    
+    // Redirect if already logged in
+    useEffect(() => {
+        if (user?.isAuthenticated) {
+            router.push('/');
+        }
+    }, [user, router]);
 
     // Map authentication errors to user-friendly messages
     const getErrorMessage = (error: AuthError): string => {
@@ -83,7 +92,9 @@ export function LoginForm() {
         // Attempt login
         const result = await login(credentials);
 
-        if (!result.success) {
+        if (result.success) {
+            router.push('/');
+        } else {
             setErrors({
                 general: getErrorMessage(result.error || "unknown-error"),
             });
@@ -95,8 +106,23 @@ export function LoginForm() {
             setCredentials((prev) => ({ ...prev, [field]: e.target.value }));
         };
 
-    const useDemoAccount = (email: string, password: string) => {
+    const useDemoAccount = async (email: string, password: string) => {
+        // Set the credentials
         setCredentials({ email, password });
+        
+        // Reset any existing errors
+        setErrors({});
+        
+        // Attempt login with the demo account
+        const result = await login({ email, password });
+        
+        if (result.success) {
+            router.push('/');
+        } else {
+            setErrors({
+                general: getErrorMessage(result.error || "unknown-error"),
+            });
+        }
     };
 
     return (

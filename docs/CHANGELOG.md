@@ -1,33 +1,101 @@
 # Changelog
 
-All notab- Added track version selection functionality in the timeline component, allowing users to switch between different versions of audio tracks with seamless playback transition.
-- Added loading skeletons to dashboard page for better user experience while fetching data.
-- Created a reusable `HarmonicCard` component to unify card styling across the application, making it more maintainable and ensuring consistent styling.
-- Enhanced `HarmonicCard` component with expanded Bauhaus-inspired hover animations including geometric shapes, shadow effects, and subtle content movements that follow Bauhaus design principles.
-- Simplified `HarmonicCard` component API by replacing multiple variant options with a single `interactive` boolean prop, making it more intuitive and easier to use.
-- Improved moderation page layout with Bauhaus-inspired grid structure, better visual hierarchy, and clearer content organization, creating a more functional and aesthetically pleasing UI.
-### Fixed
-- Fixed track progress visualization in the TrackItem component by correcting how background colors are applied, ensuring the playback progress is properly displayed.
-- Enhanced conflict cards in the moderation interface with consistent visual elements, proper spacing, and clear content sections following Bauhaus design principles.
-- Redesigned detailed conflict view with a two-column grid layout, geometric visual elements, and stronger visual hierarchy to improve usability and aesthetic appeal.
-- Updated resolution dialog with consistent grid-based layout and visual elements that align with Bauhaus design language throughout the application.
-- Added summary metrics to the moderation page header to provide at-a-glance status information in a clean grid-based layout.changes to this project will be documented in this file.
+All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
 ### Added
-- Implemented checkpoint creation and application feature for project versioning.
-- Added dedicated service methods in project-service.ts for checkpoint management.
-- Created documentation for checkpoint feature in docs/checkpoint-feature.md.
-- Added demo accounts section to login form for easier testing and demonstration.
-- Added `getMoodBorderColor` and `getEmotionBorderColor` utility functions for consistent mood/emotion styling.
-- Added more specific authentication error types to better identify and handle different error scenarios.
+- Implemented standardized API response utilities to ensure consistent JSON response format across all API endpoints
+- Created utility functions for success responses, error responses, and custom API responses with cookie and header support
+- Added type definitions for standard API response structure
+- Enhanced debugging for authentication with detailed logging across auth flow
+- Added user store debugging to track user creation and authentication
+- Added token debugging utility function to diagnose token-related issues
+- Added fixed IDs for demo users to ensure consistent authentication between server restarts
+- Added automatic redirection to dashboard after successful login
+- Added redirect to login page after logout
+- Added comprehensive debug logging to AuthGuard component
+- Added full page reload on logout to ensure clean state
+- Added Zod schemas for all authentication operations (login, register, token payloads)
+- Added jose-based JWT token handling for better security and standardization
+
+### Changed
+- Simplified authentication state management to use only cookies instead of localStorage and sessionStorage
+- Refactored auth context to rely solely on server-side sessions through HTTP-only cookies
+- Updated all API calls to include credentials for consistent cookie handling
+- Improved cookie clearing during logout with explicit cookie deletion and forced page navigation
+- Enhanced logout API to use direct NextResponse for more reliable cookie management
+- Replaced manual validation with Zod schema validation for all authentication operations
+- Refactored register route to use Zod for request validation and response formatting
+- Updated auth service to use jose for JWT operations and Zod for data validation
+- Standardized API response format across all authentication endpoints to use { success: boolean, data: any } structure
+
+### Fixed
+- Fixed authentication issues with protected routes by improving token verification and user lookup
+- Enhanced logout functionality to ensure complete session cleanup
+- Fixed logout API to properly clear cookies with correct parameters and paths
+- Fixed issue where hard page refresh would log users out despite having valid auth cookies
+- Fixed async/await pattern in user service to properly await token verification
+- Fixed token expiration handling by using jose's native expiration time format
+- Improved error handling for expired tokens with better logging
+- Updated cookie maxAge to match token expiration time consistently across login and register routes
+- Improved error handling during logout to ensure users are always redirected correctly
+- Fixed React hooks error in AuthGuard component by removing conditionally called useEffect
+- Enhanced error handling and logging in user services and authentication middleware
+- Fixed "User not found" errors in profile API by implementing static user IDs for demo accounts
+- Fixed inconsistent user IDs between server restarts causing authentication failures
+- Fixed issue with login form not redirecting users after successful authentication
+- Fixed logout functionality by adding proper cookie clearing and redirection
+- Fixed AuthGuard component with improved conditional logic for authenticated and non-authenticated routes
+- Fixed authentication redirects to use Next.js router instead of window.location for better client-side navigation
+- Improved demo account login experience with automatic form submission and redirection
+- Improved error reporting in user profile endpoint to show more debugging information
+
+### Changed
+- Refactored all API routes to use the new consistent response format
+- Updated user profile routes to use the standardized response utilities
+- Enhanced authentication routes to return structured API responses
+- Improved error handling with consistent error format across all endpoints
+- Updated user store to use predefined IDs for demo accounts to maintain consistency
+- Implemented backend API for authentication and user management
+- Created layered architecture with API routes, services, and data store
+- Added user registration API with validation and error handling
+- Added user login API with secure token generation
+- Added user profile management APIs for fetching and updating profiles
+- Implemented secure password handling with hashing
+- Added validation layer for authentication and profile data
+- Created in-memory user store for development (to be replaced with database)
+- Added middleware for token verification and route protection
+- Added JWT-based authentication flow
+- Created comprehensive documentation for backend requirements
+- Added demo accounts for easier testing and demonstration
+- Restructured API services into a proper services/api directory for better organization
+- Added barrel files for cleaner imports across the application
+
+## [Unreleased]
+
+### Added
+- Implemented backend API for authentication and user management
+- Created layered architecture with API routes, services, and data store
+- Added user registration API with validation and error handling
+- Added user login API with secure token generation
+- Added user profile management APIs for fetching and updating profiles
+- Implemented secure password handling with hashing
+- Added validation layer for authentication and profile data
+- Created in-memory user store for development (to be replaced with database)
+- Added middleware for token verification and route protection
+- Added JWT-based authentication flow
+- Created comprehensive documentation for backend requirements
+- Added demo accounts for easier testing and demonstration
+- Restructured API services into a proper services/api directory for better organization
+- Added barrel files for cleaner imports across the application
+- Integrated frontend authentication with the backend API
+- Updated auth context to use real API endpoints instead of mock data
+- Enhanced profile page to fetch and update user data from the API
+- Added loading and error states for profile data fetching
+- Implemented proper authentication flow with token-based sessions
 - Added token validation and expiration checks for better session management.
-- Created comprehensive constants structure for centralized management of colors, emotions, and error types.
-- Added new utility functions for mood gradients and light background colors.
-- Created detailed documentation for constants organization in CONSTANTS.md.
-- Added sample track versions and audio constants to replace hardcoded fallback values in timeline component.
-- Implemented track upload functionality with dialog to select existing tracks or create new ones.
+- Added more specific authentication error types to better identify and handle different error scenarios.
 - Created track upload service for managing track versions and file uploads.
 - Added file upload simulation with progress tracking for audio files.
 - Enhanced constants index file with explicit exports of commonly used constants for better IDE support and developer experience.

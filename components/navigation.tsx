@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ModeToggle } from "@/components/mode-toggle";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -27,12 +27,31 @@ const NAV_ITEMS = [
 
 export default function Navigation() {
     const pathname = usePathname();
-    const { user, logout } = useAuth();
+    const router = useRouter();
+    const { user, logout, isLoading } = useAuth();
     const [notifications, setNotifications] = useState(3);
 
     const clearNotifications = () => {
         setNotifications(0);
     };
+
+    const handleLogout = async () => {
+        try {
+            const success = await logout();
+
+            if (success) {
+                window.location.href = '/login';
+            } else {
+                router.push('/login');
+            }
+        } catch (error) {
+            router.push('/login');
+        }
+    };
+
+    if (isLoading) {
+        return null;
+    }
 
     return (
         <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -211,7 +230,7 @@ export default function Navigation() {
                                         </Link>
                                     </DropdownMenuItem>
                                     <DropdownMenuSeparator />
-                                    <DropdownMenuItem onClick={logout} className="text-red-600">
+                                    <DropdownMenuItem onClick={handleLogout} className="text-red-600 cursor-pointer">
                                         <LogOut className="mr-2 h-4 w-4" />
                                         <span>Log out</span>
                                     </DropdownMenuItem>

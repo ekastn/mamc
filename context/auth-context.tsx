@@ -4,6 +4,7 @@ import type React from "react";
 import { createContext, useContext, useState, useEffect } from "react";
 import type { AuthUser, LoginCredentials, RegisterCredentials } from "@/lib/types";
 import { generateId } from "@/lib/utils";
+import { validateLoginInput, validateRegisterInput } from "@/lib/validations/auth-validation";
 
 // Define error types for authentication
 export type AuthError =
@@ -26,7 +27,7 @@ interface AuthContextType {
     register: (
         credentials: RegisterCredentials
     ) => Promise<{ success: boolean; error?: AuthError }>;
-    logout: () => void;
+    logout: () => Promise<boolean>;
     isLoading: boolean;
     validateEmail: (email: string) => boolean;
     validatePassword: (password: string) => boolean;
@@ -34,63 +35,46 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// In a real application, this would be handled by the backend
-const DEMO_USERS: Record<string, { id: string; name: string; email: string; password: string }> = {
-    "admin@harmonic.app": {
-        id: "demo-user-1",
-        name: "Admin User",
-        email: "admin@harmonic.app",
-        password: "Password123!",
-    },
-    "user@harmonic.app": {
-        id: "demo-user-2",
-        name: "Test User",
-        email: "user@harmonic.app",
-        password: "Password123!",
-    },
-};
-
 export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [user, setUser] = useState<AuthUser | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
     // Check for existing session on mount
     useEffect(() => {
-        const checkSession = () => {
+        const checkSession = async () => {
             try {
-                // In a real app, this would validate a token with the server
-                const token = sessionStorage.getItem("auth-token");
-                const savedUser = sessionStorage.getItem("auth-user");
+                const response = await fetch('/api/users/profile', {
+                    credentials: 'include',
+                    cache: 'no-store'
+                });
+                
+                if (response.ok) {
+                    const userData = await response.json();
+                    
+                    const authUser: AuthUser = {
+                        id: userData.data.id,
+                        name: userData.data.name,
+                        email: userData.data.email,
+                        avatar: userData.data.avatar || "/placeholder-user.jpg",
+                        isAuthenticated: true,
+                    };
+                    
+                    // Update React state with user data
+                    setUser(authUser);
+                } else {
+                    const errorData = await response.json();
 
-                if (token && savedUser) {
-                    try {
-                        // Validate token format and expiration
-                        const tokenData = JSON.parse(atob(token));
-
-                        // Check if token is expired
-                        if (tokenData.exp < Date.now()) {
-                            console.warn("Session expired");
-                            sessionStorage.removeItem("auth-token");
-                            sessionStorage.removeItem("auth-user");
-                            setUser(null);
-                            setIsLoading(false);
-                            return;
-                        }
-
-                        // Parse user data
-                        const parsedUser = JSON.parse(savedUser);
-                        setUser(parsedUser);
-                    } catch (parseError) {
-                        console.error("Invalid token format:", parseError);
-                        sessionStorage.removeItem("auth-token");
-                        sessionStorage.removeItem("auth-user");
-                        setUser(null);
+                    console.log("[AuthContext] Authentication check failed:", errorData);
+                    
+                    if (response.status === 401) {
+                        console.log("[AuthContext] Token expired or invalid, cleaning up");
                     }
+                    
+                    setUser(null);
                 }
             } catch (error) {
-                console.error("Failed to restore session:", error);
-                sessionStorage.removeItem("auth-token");
-                sessionStorage.removeItem("auth-user");
+                console.error("Failed to check authentication status:", error);
+                setUser(null);
             } finally {
                 setIsLoading(false);
             }
@@ -117,56 +101,54 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setIsLoading(true);
 
         try {
-            // Check for empty fields first
-            if (!credentials.email || !credentials.password) {
+            // Validate input
+            const validationResult = validateLoginInput(credentials);
+            if (!validationResult.success) {
                 setIsLoading(false);
                 return { success: false, error: "validation-error" };
             }
 
-            // Validate input format
-            if (!validateEmail(credentials.email)) {
+            // Call the login API
+            const response = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include', // Include credentials to ensure cookies are handled
+                body: JSON.stringify(credentials),
+            });
+
+            const data = await response.json();
+            
+            if (!response.ok) {
                 setIsLoading(false);
-                return { success: false, error: "invalid-format" };
+                
+                // Map the API error to our AuthError type
+                let errorType: AuthError = "unknown-error";
+                
+                if (data.error === "Invalid email or password") {
+                    errorType = "invalid-credentials";
+                } else if (data.error === "User not found") {
+                    errorType = "user-not-found";
+                } else if (data.error === "Validation error") {
+                    errorType = "validation-error";
+                } else if (data.error === "Server error during login") {
+                    errorType = "server-error";
+                }
+                
+                return { success: false, error: errorType };
             }
 
-            // Simulate API call with some delay
-            await new Promise((resolve) => setTimeout(resolve, 1000));
-
-            // Demo authentication - in a real app, this would be a server request
-            const demoUser = DEMO_USERS[credentials.email];
-
-            // Check if user exists and password matches
-            if (!demoUser) {
-                setIsLoading(false);
-                return { success: false, error: "user-not-found" };
-            }
-
-            if (demoUser.password !== credentials.password) {
-                setIsLoading(false);
-                return { success: false, error: "invalid-credentials" };
-            }
-
-            // Create auth user from demo data
+            // Create auth user from response data
             const authUser: AuthUser = {
-                id: demoUser.id,
-                name: demoUser.name,
-                email: demoUser.email,
-                avatar: "/placeholder-user.jpg",
+                id: data.data.id,
+                name: data.data.name,
+                email: data.data.email,
+                avatar: data.data.avatar || "/placeholder-user.jpg",
                 isAuthenticated: true,
             };
 
-            // Generate a fake JWT token (in real app would come from server)
-            const token = btoa(
-                JSON.stringify({
-                    userId: demoUser.id,
-                    exp: Date.now() + 24 * 60 * 60 * 1000, // 24 hours
-                })
-            );
-
-            // Store in sessionStorage (more secure than localStorage)
-            sessionStorage.setItem("auth-token", token);
-            sessionStorage.setItem("auth-user", JSON.stringify(authUser));
-
+            // Update React state with user data
             setUser(authUser);
             setIsLoading(false);
             return { success: true };
@@ -183,66 +165,54 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setIsLoading(true);
 
         try {
-            // Check for empty fields
-            if (
-                !credentials.name ||
-                !credentials.email ||
-                !credentials.password ||
-                !credentials.confirmPassword
-            ) {
+            // Validate input using our validation function
+            const validationResult = validateRegisterInput(credentials);
+            if (!validationResult.success) {
                 setIsLoading(false);
                 return { success: false, error: "validation-error" };
             }
 
-            // Validate input
-            if (!validateEmail(credentials.email)) {
+            // Call the register API
+            const response = await fetch('/api/auth/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include', // Include credentials to ensure cookies are handled
+                body: JSON.stringify(credentials),
+            });
+
+            const data = await response.json();
+            
+            if (!response.ok) {
                 setIsLoading(false);
-                return { success: false, error: "invalid-format" };
+                
+                // Map the API error to our AuthError type
+                let errorType: AuthError = "unknown-error";
+                
+                if (data.error === "Email already in use") {
+                    errorType = "email-already-in-use";
+                } else if (data.error.includes("password")) {
+                    errorType = "weak-password";
+                } else if (data.error === "Validation error") {
+                    errorType = "validation-error";
+                } else if (data.error === "Server error during registration") {
+                    errorType = "server-error";
+                }
+                
+                return { success: false, error: errorType };
             }
 
-            if (!validatePassword(credentials.password)) {
-                setIsLoading(false);
-                return { success: false, error: "weak-password" };
-            }
-
-            if (credentials.password !== credentials.confirmPassword) {
-                setIsLoading(false);
-                return { success: false, error: "passwords-dont-match" };
-            }
-
-            // Simulate API call
-            await new Promise((resolve) => setTimeout(resolve, 1000));
-
-            // Check if email is already in use
-            if (DEMO_USERS[credentials.email]) {
-                setIsLoading(false);
-                return { success: false, error: "email-already-in-use" };
-            }
-
-            // In a real app, this would create a new user on the server
-            const userId = generateId("user-");
-
-            // Create auth user
+            // Create auth user from response data
             const authUser: AuthUser = {
-                id: userId,
-                name: credentials.name,
-                email: credentials.email,
-                avatar: "/placeholder-user.jpg",
+                id: data.data.id,
+                name: data.data.name,
+                email: data.data.email,
+                avatar: data.data.avatar || "/placeholder-user.jpg",
                 isAuthenticated: true,
             };
 
-            // Generate a fake JWT token
-            const token = btoa(
-                JSON.stringify({
-                    userId: userId,
-                    exp: Date.now() + 24 * 60 * 60 * 1000, // 24 hours
-                })
-            );
-
-            // Store in sessionStorage
-            sessionStorage.setItem("auth-token", token);
-            sessionStorage.setItem("auth-user", JSON.stringify(authUser));
-
+            // Update React state with user data
             setUser(authUser);
             setIsLoading(false);
             return { success: true };
@@ -253,10 +223,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
     };
 
-    const logout = () => {
-        setUser(null);
-        sessionStorage.removeItem("auth-token");
-        sessionStorage.removeItem("auth-user");
+    const logout = async (): Promise<boolean> => {
+        try {
+            const response = await fetch('/api/auth/logout', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include', // Important: include credentials to ensure cookies are sent and can be cleared
+                cache: 'no-store' // Prevent caching of this request
+            });
+
+            setUser(null);
+            window.location.href = '/login';
+            return true;
+        } catch (error) {
+            console.error("Logout error:", error);
+            setUser(null);
+            window.location.href = '/login';
+            return true;
+        }
     };
 
     return (

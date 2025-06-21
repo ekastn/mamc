@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -24,25 +24,87 @@ import {
   MapPin,
   Calendar,
   Briefcase,
+  Loader2
 } from "lucide-react"
-import { SAMPLE_USER, SAMPLE_NOTIFICATION_SETTINGS, SAMPLE_SECURITY_SETTINGS } from "@/lib/constants/user"
+import { SAMPLE_NOTIFICATION_SETTINGS, SAMPLE_SECURITY_SETTINGS } from "@/lib/constants/user"
+import { useAuth } from "@/context/auth-context"
 
 export default function ProfilePage() {
+  const { user: authUser } = useAuth()
   const [isEditing, setIsEditing] = useState(false)
-  const [user, setUser] = useState(SAMPLE_USER)
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [user, setUser] = useState<any>(null)
   const [notificationSettings, setNotificationSettings] = useState(SAMPLE_NOTIFICATION_SETTINGS)
   const [securitySettings, setSecuritySettings] = useState(SAMPLE_SECURITY_SETTINGS)
+
+  // Fetch user profile data
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      try {
+        setIsLoading(true)
+        const response = await fetch('/api/users/me')
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch profile')
+        }
+        
+        const data = await response.json()
+        setUser(data)
+        setError(null)
+      } catch (err) {
+        console.error('Error fetching user profile:', err)
+        setError('Failed to load user profile')
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    
+    if (authUser?.isAuthenticated) {
+      fetchUserProfile()
+    }
+  }, [authUser])
 
   const handleToggleEdit = () => {
     setIsEditing(!isEditing)
   }
 
-  const handleSaveProfile = () => {
-    setIsEditing(false)
-    alert("Profile saved successfully!")
+  const handleSaveProfile = async () => {
+    try {
+      setIsLoading(true)
+      
+      // Only send fields that can be updated
+      const updateData = {
+        name: user.name,
+        bio: user.bio,
+        avatar: user.avatar
+      }
+      
+      const response = await fetch('/api/users/profile', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updateData),
+      })
+      
+      if (!response.ok) {
+        throw new Error('Failed to update profile')
+      }
+      
+      const updatedUser = await response.json()
+      setUser(updatedUser)
+      setIsEditing(false)
+      setError(null)
+    } catch (err) {
+      console.error('Error updating profile:', err)
+      setError('Failed to update profile')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
-  const handleInputChange = (field: keyof typeof user, value: string) => {
+  const handleInputChange = (field: string, value: string) => {
     setUser({ ...user, [field]: value })
   }
 
@@ -65,6 +127,60 @@ export default function ProfilePage() {
       ...securitySettings,
       twoFactorEnabled: !securitySettings.twoFactorEnabled,
     })
+  }
+
+  // Show loading state when fetching profile data
+  if (isLoading && !user) {
+    return (
+      <div className="container mx-auto py-10 space-y-8">
+        <div className="flex items-center justify-center h-64">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <span className="ml-2 text-lg">Loading profile...</span>
+        </div>
+      </div>
+    )
+  }
+
+  // Show error state if profile fetch failed
+  if (error && !user) {
+    return (
+      <div className="container mx-auto py-10 space-y-8">
+        <Card className="border-destructive">
+          <CardHeader>
+            <CardTitle className="text-destructive">Error</CardTitle>
+            <CardDescription>
+              {error}. Please try refreshing the page or log in again.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button onClick={() => window.location.reload()}>
+              Refresh Page
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  // Show message if not authenticated
+  if (!authUser?.isAuthenticated) {
+    return (
+      <div className="container mx-auto py-10 space-y-8">
+        <Card>
+          <CardHeader>
+            <CardTitle>Authentication Required</CardTitle>
+            <CardDescription>
+              Please log in to view and manage your profile.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button asChild>
+              <a href="/login">Go to Login</a>
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    )
   }
 
   return (

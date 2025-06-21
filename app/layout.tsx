@@ -13,7 +13,6 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
     title: "Harmonic - Social-Emotional Music Collaboration",
     description: "Collaborate on music projects with emotional awareness",
-    generator: "v0.dev",
 };
 
 export default function RootLayout({
