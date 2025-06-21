@@ -1,264 +1,242 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
 generator client {
   provider = "prisma-client-js"
+  output   = "../lib/generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-  // Enable referential integrity
-  // referentialIntegrity = "prisma" // Uncomment if using PostgreSQL 12+
 }
 
-// Enums
-enum TrackType {
-  AUDIO
-  MIDI
-  EFFECT
+enum CollaboratorRole {
+  OWNER
+  PRODUCER
+  MIXER
+  MEMBER
+  MODERATOR
 }
 
-// User model
+enum CommentFeelingTag {
+  HAPPY
+  EXCITED
+  INSPIRED
+  PROUD
+  SATISFIED
+  CALM
+  FOCUSED
+  NEUTRAL
+  CURIOUS
+  THOUGHTFUL
+  TIRED
+  SAD
+  FRUSTRATED
+  CONFUSED
+  OVERWHELMED
+}
+
+enum ConflictStatus {
+  OPEN
+  ESCALATED
+  RESOLVED
+  DISMISSED
+}
+
+enum ResolutionType {
+  MUTUAL_AGREEMENT
+  MEDIATED_RESOLUTION
+  POLICY_ENFORCEMENT
+  NO_ACTION_NEEDED
+}
+
 model User {
-  id            String    @id @default(uuid())
-  name          String
-  email         String    @unique
-  password      String
-  avatar        String?
-  bio           String?
+  id           String   @id @default(uuid())
+  username     String   @unique
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
-  
-  // Relations
-  ownedProjects Project[]  @relation("ProjectOwner")
-  memberships   ProjectMember[]
-  comments      Comment[]
-  versions      Version[]
-  checkpoints   Checkpoint[]
-  resolvedComments Comment[] @relation("ResolvedByUser")
-  
-  // Metadata
-  createdAt     DateTime  @default(now()) @map("created_at")
-  updatedAt     DateTime  @updatedAt @map("updated_at")
-  
+  profile            Profile?
+  ownedProjects      Project[]             @relation("ProjectOwner")
+  collaborations     ProjectCollaborator[]
+  uploadedVersions   TrackVersion[]
+  createdCheckpoints Checkpoint[]
+  comments           TrackComment[]
+  reportedConflicts  Conflict[]            @relation("ReportedConflicts")
+  resolvedConflicts  ConflictResolution[]  @relation("ResolvedConflicts")
+
   @@map("users")
 }
 
-// Project model
+model Profile {
+  userId              String  @id
+  displayName         String
+  avatarUrl           String?
+  bio                 String?
+  jobTitle            String?
+  location            String?
+  website             String?
+  projectsCount       Int     @default(0)
+  collaborationsCount Int     @default(0)
+  socialLinks         Json    @default("{}")
+  preferences         Json    @default("{}")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("profiles")
+}
+
+model Tag {
+  id   Int    @id @default(autoincrement())
+  name String @unique
+
+  projects Project[]
+
+  @@map("tags")
+}
+
 model Project {
-  id          String    @id @default(uuid())
-  title       String
-  description String?
-  color       String    @default("#3b82f6")
-  
-  // Relations
+  id          String   @id @default(uuid())
   ownerId     String
-  owner       User      @relation("ProjectOwner", fields: [ownerId], references: [id])
-  members     ProjectMember[]
-  tracks      Track[]
-  versions    Version[]
-  checkpoints Checkpoint[]
-  comments    Comment[]
-  
-  // Metadata
-  isArchived  Boolean   @default(false)
-  isPublic    Boolean   @default(false)
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime  @updatedAt @map("updated_at")
-  
-  // Indexes
-  @@index([ownerId])
-  @@index([isArchived])
-  @@index([isPublic])
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  owner         User                  @relation("ProjectOwner", fields: [ownerId], references: [id], onDelete: Restrict)
+  collaborators ProjectCollaborator[]
+  tracks        Track[]
+  checkpoints   Checkpoint[]
+  tags          Tag[]
+  conflicts     Conflict[]
+
   @@map("projects")
 }
 
-// Project member (for collaboration)
-model ProjectMember {
-  id        String      @id @default(uuid())
-  
-  // Relations
-  userId    String
-  user      User    @relation(fields: [userId], references: [id])
+model ProjectCollaborator {
   projectId String
-  project   Project @relation(fields: [projectId], references: [id])
-  
-  // Metadata
-  createdAt DateTime    @default(now()) @map("created_at")
-  updatedAt DateTime    @updatedAt @map("updated_at")
-  
-  @@unique([userId, projectId])
-  @@index([userId])
-  @@index([projectId])
-  @@map("project_members")
+  userId    String
+  role      CollaboratorRole @default(MEMBER)
+  joinedAt  DateTime         @default(now())
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([projectId, userId])
+  @@map("project_collaborators")
 }
 
-// Track model
 model Track {
-  id          String    @id @default(uuid())
-  name        String
-  order       Int
-  
-  // Relations
-  projectId   String
-  project     Project   @relation(fields: [projectId], references: [id])
-  versions    Version[]
-  
-  // Metadata
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime  @updatedAt @map("updated_at")
-  
-  @@index([projectId])
+  id         String   @id @default(uuid())
+  projectId  String
+  name       String
+  trackOrder Int?
+  createdAt  DateTime @default(now())
+
+  project  Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  versions TrackVersion[]
+
   @@map("tracks")
 }
 
-// Version model
-model Version {
-  id          String    @id @default(uuid())
-  name        String
-  description String?
-  audioUrl    String
-  changeLog   String?   // Simple string describing changes in this version
-  duration    Float?    // Duration in seconds
-  isCurrent   Boolean   @default(false)
-  
-  // Relations
-  trackId     String
-  track       Track     @relation(fields: [trackId], references: [id])
-  
-  createdById String
-  createdBy   User      @relation(fields: [createdById], references: [id])
-  
-  // Relations to other models
-  comments    Comment[]
-  
-  // Checkpoint associations
-  checkpoints CheckpointVersion[]
-  
-  // Metadata
-  createdAt   DateTime  @default(now()) @map("created_at")
-  
-  @@index([trackId])
-  @@index([createdById])
-  @@map("versions")
+model TrackVersion {
+  id              String   @id @default(uuid())
+  trackId         String
+  uploadedById    String
+  versionNumber   Int
+  notes           String?
+  fileUrl         String
+  fileSizeBytes   BigInt?
+  durationSeconds Decimal?
+  createdAt       DateTime @default(now())
+
+  track             Track                    @relation(fields: [trackId], references: [id], onDelete: Cascade)
+  uploader          User                     @relation(fields: [uploadedById], references: [id], onDelete: Restrict)
+  checkpointEntries CheckpointTrackVersion[]
+  comments          TrackComment[]
+
+  @@unique([trackId, versionNumber])
+  @@map("track_versions")
 }
 
-// Checkpoint model
 model Checkpoint {
-  id          String    @id @default(uuid())
+  id          String   @id @default(uuid())
+  projectId   String
+  createdById String
   name        String
   description String?
-  
-  // Relations
-  projectId   String
-  project     Project   @relation(fields: [projectId], references: [id])
-  
-  createdById String
-  createdBy   User      @relation(fields: [createdById], references: [id])
-  
-  // Version associations
-  versions    CheckpointVersion[]
-  
-  // Metadata
-  isPublic    Boolean   @default(false)
-  createdAt   DateTime  @default(now()) @map("created_at")
-  
-  @@index([projectId])
-  @@index([createdById])
+  createdAt   DateTime @default(now())
+
+  project       Project                  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  creator       User                     @relation(fields: [createdById], references: [id], onDelete: Restrict)
+  trackVersions CheckpointTrackVersion[]
+
   @@map("checkpoints")
 }
 
-// Junction table for many-to-many between Checkpoint and Version
-model CheckpointVersion {
-  checkpoint   Checkpoint @relation(fields: [checkpointId], references: [id])
-  checkpointId String
-  
-  version     Version    @relation(fields: [versionId], references: [id])
-  versionId   String
-  
-  // Additional metadata about this relationship
-  note        String?
-  
-  @@id([checkpointId, versionId])
-  @@map("checkpoint_versions")
+model CheckpointTrackVersion {
+  checkpointId   String
+  trackVersionId String
+
+  checkpoint   Checkpoint   @relation(fields: [checkpointId], references: [id], onDelete: Cascade)
+  trackVersion TrackVersion @relation(fields: [trackVersionId], references: [id], onDelete: Restrict)
+
+  @@id([checkpointId, trackVersionId])
+  @@map("checkpoint_track_versions")
 }
 
-// Checkpoint model
-define model Checkpoint {
-  id          String    @id @default(uuid())
-  name        String
-  label       String
-  description String?
-  projectId   String
-  project     Project   @relation(fields: [projectId], references: [id])
-  createdById String
-  createdBy   User      @relation(fields: [createdById], references: [id])
-  trackStates Json      // Stores trackId -> versionId mappings
-  createdAt   DateTime  @default(now())
-  
-  @@index([projectId])
-  @@index([createdById])
+model TrackComment {
+  id                 String             @id @default(uuid())
+  trackVersionId     String
+  userId             String
+  timestampInSeconds Decimal
+  content            String
+  parentCommentId    String?
+  createdAt          DateTime           @default(now())
+  feeling            CommentFeelingTag?
+
+  trackVersion TrackVersion   @relation(fields: [trackVersionId], references: [id], onDelete: Cascade)
+  author       User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent       TrackComment?  @relation("CommentReplies", fields: [parentCommentId], references: [id], onDelete: Cascade, map: "parent_comment_id")
+  replies      TrackComment[] @relation("CommentReplies")
+  conflicts    Conflict[]
+
+  @@map("track_comments")
 }
 
-// Comment model
-model Comment {
-  id          String    @id @default(uuid())
-  content     String
-  
-  // Timeline context
-  timestamp   Float     // Timestamp in seconds from the start of the track
-  isPinned    Boolean   @default(false)
-  
-  // Relations
-  versionId   String
-  version     Version   @relation(fields: [versionId], references: [id])
-  
-  userId      String
-  user        User      @relation(fields: [userId], references: [id])
-  
-  // Threading support
-  parentId    String?
-  parent      Comment?  @relation("CommentReplies", fields: [parentId], references: [id])
-  replies    Comment[] @relation("CommentReplies")
-  
-  // Metadata
-  resolved    Boolean   @default(false)
-  resolvedAt  DateTime?
-  resolvedBy  String?
-  resolvedByUser User?   @relation("ResolvedByUser", fields: [resolvedBy], references: [id])
-  
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime  @updatedAt @map("updated_at")
-  
-  @@index([versionId])
-  @@index([userId])
-  @@index([parentId])
-  @@index([resolved])
-  @@index([timestamp])
-  @@map("comments")
+model Conflict {
+  id            String         @id @default(uuid())
+  projectId     String
+  status        ConflictStatus @default(OPEN)
+  initialReason String?
+  reportedById  String
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  project             Project             @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  reporter            User                @relation("ReportedConflicts", fields: [reportedById], references: [id], onDelete: Restrict)
+  conflictingComments TrackComment[]
+  resolution          ConflictResolution?
+
+  @@map("conflicts")
 }
 
-// Version model
-model Version {
-  id          String    @id @default(uuid())
-  name        String
-  audioUrl    String
-  duration    Float?    // Duration in seconds
-  isCurrent   Boolean   @default(false)
-  
-  // Relations
-  trackId     String
-  track       Track     @relation(fields: [trackId], references: [id])
-  
-  createdById String
-  createdBy   User      @relation(fields: [createdById], references: [id])
-  
-  // Comments for this version
-  comments    Comment[]
-  
-  createdAt   DateTime  @default(now()) @map("created_at")
-  
-  @@index([trackId])
-  @@index([createdById])
-  @@map("versions")
+model ConflictResolution {
+  id              String         @id @default(uuid())
+  conflictId      String         @unique
+  moderatorId     String
+  resolutionType  ResolutionType
+  resolutionNotes String
+  resolvedAt      DateTime       @default(now())
+
+  conflict  Conflict @relation(fields: [conflictId], references: [id], onDelete: Cascade)
+  moderator User     @relation("ResolvedConflicts", fields: [moderatorId], references: [id], onDelete: Restrict)
+
+  @@map("conflict_resolutions")
 }
