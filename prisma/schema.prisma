@@ -70,6 +70,9 @@ model User {
   comments           TrackComment[]
   reportedConflicts  Conflict[]            @relation("ReportedConflicts")
   resolvedConflicts  ConflictResolution[]  @relation("ResolvedConflicts")
+  skills             Skill[]
+  instruments        Instrument[]
+  genres             Genre[]
 
   @@map("users")
 }
@@ -90,15 +93,6 @@ model Profile {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("profiles")
-}
-
-model Tag {
-  id   Int    @id @default(autoincrement())
-  name String @unique
-
-  projects Project[]
-
-  @@map("tags")
 }
 
 model Project {
@@ -239,4 +233,36 @@ model ConflictResolution {
   moderator User     @relation("ResolvedConflicts", fields: [moderatorId], references: [id], onDelete: Restrict)
 
   @@map("conflict_resolutions")
+}
+
+model Tag {
+  id       Int       @id @default(autoincrement())
+  name     String    @unique
+  projects Project[]
+
+  @@map("tags")
+}
+
+model Skill {
+  id    Int    @id @default(autoincrement())
+  name  String @unique
+  users User[]
+
+  @@map("skills")
+}
+
+model Instrument {
+  id    Int    @id @default(autoincrement())
+  name  String @unique
+  users User[]
+
+  @@map("instruments")
+}
+
+model Genre {
+  id    Int    @id @default(autoincrement())
+  name  String @unique
+  users User[]
+
+  @@map("genres")
 }
