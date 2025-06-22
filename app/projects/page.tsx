@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Search, Plus, Grid, List, Music, Users, Clock } from "lucide-react"
 import Link from "next/link"
-import { projectService } from "@/services/project-service"
+import { projectService } from "@/lib/services/client/project-service"
 import { HarmonicCard, HarmonicCardContent, HarmonicCardFooter } from "@/components/ui/harmonic-card"
 
 export default function ProjectsPage() {

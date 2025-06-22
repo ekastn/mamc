@@ -12,8 +12,8 @@ import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { ArrowLeft, Plus, X } from "lucide-react"
 import Link from "next/link"
-import { projectService } from "@/services/project-service"
-import { useAuth } from "@/context/auth-context"
+import { projectService } from "@/lib/services/client/project-service"
+import { useAuth } from "@/lib/context/auth-context"
 import { SAMPLE_USERS } from "@/lib/constants"
 
 export default function NewProjectPage() {

@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { ArrowLeft, ArrowRight, Check, Plus, X } from "lucide-react"
-import { projectCreationService } from "@/services/project/project-creation-service"
+import { projectCreationService } from "@/lib/services/client/project/project-creation-service"
 import type { ProjectTemplate, ProjectCreationData } from "@/lib/types/project"
 import { cn } from "@/lib/utils"
 

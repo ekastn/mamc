@@ -8,7 +8,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { Badge } from "@/components/ui/badge"
 import { Upload, X, File, AlertCircle, CheckCircle } from "lucide-react"
-import { fileUploadService } from "@/services/upload/file-upload-service"
+import { fileUploadService } from "@/lib/services/client/upload/file-upload-service"
 import type { UploadProgress, UploadedFile, FileValidationResult } from "@/lib/types/upload"
 import { cn } from "@/lib/utils"
 

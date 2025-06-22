@@ -8,7 +8,7 @@ import { VersionTracker } from "@/components/version-history"
 import { ProjectSidebar } from "@/components/features/project/project-sidebar"
 import { ProjectHeader } from "@/components/features/project/project-header"
 import { ProjectCommentForm } from "@/components/features/project/project-comment-form"
-import { projectService } from "@/services/project-service"
+import { projectService } from "@/lib/services/client/project-service"
 import type { Project } from "@/lib/types/project"
 
 export default function ProjectPage({ params }: { params: { id: string } }) {

@@ -7,7 +7,7 @@ import { ModeToggle } from "@/components/mode-toggle";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Bell, LogOut, Home, Music, Users, User, Settings, Shield } from "lucide-react";
 import { useState } from "react";
-import { useAuth } from "@/context/auth-context";
+import { useAuth } from "@/lib/context/auth-context";
 import { NotificationCenter } from "@/components/notification-center";
 import {
     DropdownMenu,

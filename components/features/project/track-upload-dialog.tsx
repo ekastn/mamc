@@ -12,7 +12,7 @@ import { Progress } from "@/components/ui/progress"
 import { useToast } from "@/components/ui/use-toast"
 import { Project, ProjectTrack } from "@/lib/types/project"
 import { FileDropZone } from "@/components/features/upload/file-drop-zone"
-import { fileUploadService } from "@/services/upload/file-upload-service"
+import { fileUploadService } from "@/lib/services/client/upload/file-upload-service"
 
 interface TrackUploadDialogProps {
   open: boolean

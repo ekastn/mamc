@@ -13,7 +13,7 @@ import {
 import Link from "next/link";
 import { ArrowRight, Music, Plus, Sparkles, Users } from "lucide-react";
 import { EmotionSelector } from "@/components/emotion-selector";
-import { projectService } from "@/services/project-service";
+import { projectService } from "@/lib/services/client/project-service";
 import type { Project } from "@/lib/types";
 import {
     HarmonicCard,

@@ -3,7 +3,7 @@
 import { useParams } from 'next/navigation'
 import { Timeline as TimelineComponent } from "@/components/timeline"
 import { useEffect, useState } from 'react'
-import { projectService } from '@/services/project-service'
+import { projectService } from '@/lib/services/client/project-service'
 import type { ProjectTrack as Track, Comment } from '@/lib/types'
 
 export function Timeline() {

@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { X } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { emotionService } from "@/services/audio/emotion-service"
+import { emotionService } from "@/lib/services/client/audio/emotion-service"
 
 interface CommentFilterProps {
   selectedFilters: string[]

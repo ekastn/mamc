@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge"
 import { Trash2, Edit3, MessageSquare } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { AudioComment } from "@/lib/types/audio"
-import { emotionService } from "@/services/audio/emotion-service"
+import { emotionService } from "@/lib/services/client/audio/emotion-service"
 import { useComments } from "@/context/comment-context"
 
 interface CommentListProps {

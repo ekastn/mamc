@@ -1,7 +1,3 @@
-/**
- * Types related to user data
- */
-
 export interface UserProfile {
   id: string
   name: string
@@ -9,7 +5,7 @@ export interface UserProfile {
   email: string
   avatar: string
   bio: string
-  role: string
+  jobTitle?: string
   joinDate: string
   location: string
   website?: string
@@ -25,8 +21,6 @@ export interface UserProfile {
   stats: {
     projects: number
     collaborations: number
-    followers: number
-    following: number
   }
   preferences: {
     theme: "light" | "dark" | "system"

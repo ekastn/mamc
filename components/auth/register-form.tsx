@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, Mail, Lock, User, AlertTriangle } from "lucide-react";
-import { useAuth, type AuthError } from "@/context/auth-context";
+import { useAuth, type AuthError } from "@/lib/context/auth-context";
 import type { RegisterCredentials } from "@/lib/types";
 import { useRouter } from "next/router";
 

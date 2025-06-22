@@ -26,43 +26,47 @@ import {
   Briefcase,
   Loader2
 } from "lucide-react"
-import { SAMPLE_NOTIFICATION_SETTINGS, SAMPLE_SECURITY_SETTINGS } from "@/lib/constants/user"
-import { useAuth } from "@/context/auth-context"
+import { SAMPLE_NOTIFICATION_SETTINGS, SAMPLE_SECURITY_SETTINGS, SAMPLE_USER } from "@/lib/constants/user"
+import { useAuth } from "@/lib/context/auth-context"
 
 export default function ProfilePage() {
   const { user: authUser } = useAuth()
   const [isEditing, setIsEditing] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [user, setUser] = useState<any>(null)
+  const [userState, setUser] = useState<any>(null)
   const [notificationSettings, setNotificationSettings] = useState(SAMPLE_NOTIFICATION_SETTINGS)
   const [securitySettings, setSecuritySettings] = useState(SAMPLE_SECURITY_SETTINGS)
 
+  const user = SAMPLE_USER;
+
   // Fetch user profile data
   useEffect(() => {
-    const fetchUserProfile = async () => {
-      try {
-        setIsLoading(true)
-        const response = await fetch('/api/users/me')
+    // const fetchUserProfile = async () => {
+    //   try {
+    //     setIsLoading(true)
+    //     const response = await fetch('/api/users/me')
         
-        if (!response.ok) {
-          throw new Error('Failed to fetch profile')
-        }
+    //     if (!response.ok) {
+    //       throw new Error('Failed to fetch profile')
+    //     }
         
-        const data = await response.json()
-        setUser(data)
-        setError(null)
-      } catch (err) {
-        console.error('Error fetching user profile:', err)
-        setError('Failed to load user profile')
-      } finally {
-        setIsLoading(false)
-      }
-    }
+    //     const data = await response.json()
+    //     setUser(data)
+    //     setError(null)
+    //   } catch (err) {
+    //     console.error('Error fetching user profile:', err)
+    //     setError('Failed to load user profile')
+    //   } finally {
+    //     setIsLoading(false)
+    //   }
+    // }
     
-    if (authUser?.isAuthenticated) {
-      fetchUserProfile()
-    }
+    // if (authUser?.isAuthenticated) {
+    //   fetchUserProfile()
+    // }
+    setUser(SAMPLE_USER) // For demo purposes, replace with actual fetchJK:w
+
   }, [authUser])
 
   const handleToggleEdit = () => {
@@ -137,48 +141,6 @@ export default function ProfilePage() {
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
           <span className="ml-2 text-lg">Loading profile...</span>
         </div>
-      </div>
-    )
-  }
-
-  // Show error state if profile fetch failed
-  if (error && !user) {
-    return (
-      <div className="container mx-auto py-10 space-y-8">
-        <Card className="border-destructive">
-          <CardHeader>
-            <CardTitle className="text-destructive">Error</CardTitle>
-            <CardDescription>
-              {error}. Please try refreshing the page or log in again.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button onClick={() => window.location.reload()}>
-              Refresh Page
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    )
-  }
-
-  // Show message if not authenticated
-  if (!authUser?.isAuthenticated) {
-    return (
-      <div className="container mx-auto py-10 space-y-8">
-        <Card>
-          <CardHeader>
-            <CardTitle>Authentication Required</CardTitle>
-            <CardDescription>
-              Please log in to view and manage your profile.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button asChild>
-              <a href="/login">Go to Login</a>
-            </Button>
-          </CardContent>
-        </Card>
       </div>
     )
   }

@@ -8,8 +8,8 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { Project, ProjectTrack, TrackVersion } from '@/lib/types/project';
-import { trackUploadService } from '@/services/project/track-upload-service';
-import { fileUploadService } from '@/services/upload/file-upload-service';
+import { trackUploadService } from '@/lib/services/client/project/track-upload-service';
+import { fileUploadService } from '@/lib/services/client/upload/file-upload-service';
 
 // Mock project data for testing
 const mockProject: Project = {
