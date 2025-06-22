@@ -114,7 +114,9 @@ export function RegisterForm() {
                 general: getErrorMessage(result.error || "unknown-error"),
             });
         } else {
-            router.push("/dashboard");
+            // Force a full page refresh to update server components
+            window.location.href = "/dashboard";
+            return;
         }
     };
 

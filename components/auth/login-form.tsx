@@ -86,7 +86,9 @@ export function LoginForm() {
         const result = await login(credentials);
 
         if (result.success) {
-            router.push("/");
+            // Force a full page refresh to update server components
+            window.location.href = "/";
+            return;
         } else {
             setErrors({
                 general: getErrorMessage(result.error || "unknown-error"),
