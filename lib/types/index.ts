@@ -15,10 +15,8 @@ export interface User {
 // Auth types
 export interface AuthUser {
   id: string
-  name: string
+  username: string
   email: string
-  avatar?: string
-  isAuthenticated: boolean
 }
 
 export interface LoginCredentials {
@@ -28,6 +26,7 @@ export interface LoginCredentials {
 
 export interface RegisterCredentials {
   name: string
+  username: string
   email: string
   password: string
   confirmPassword: string

@@ -10,11 +10,13 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, Mail, Lock, User, AlertTriangle } from "lucide-react";
 import { useAuth, type AuthError } from "@/context/auth-context";
 import type { RegisterCredentials } from "@/lib/types";
+import { useRouter } from "next/router";
 
 export function RegisterForm() {
     const { register, isLoading, validateEmail, validatePassword } = useAuth();
     const [credentials, setCredentials] = useState<RegisterCredentials>({
         name: "",
+        username: "",
         email: "",
         password: "",
         confirmPassword: "",
@@ -22,10 +24,13 @@ export function RegisterForm() {
     const [errors, setErrors] = useState<{
         name?: string;
         email?: string;
+        username?: string;
         password?: string;
         confirmPassword?: string;
         general?: string;
     }>({});
+
+    const router = useRouter();
 
     const getErrorMessage = (error: AuthError): string => {
         switch (error) {
@@ -51,6 +56,7 @@ export function RegisterForm() {
     const validateForm = (): boolean => {
         const newErrors: {
             name?: string;
+            username?: string;
             email?: string;
             password?: string;
             confirmPassword?: string;
@@ -60,6 +66,14 @@ export function RegisterForm() {
             newErrors.name = "Name is required";
         } else if (credentials.name.length < 2) {
             newErrors.name = "Name must be at least 2 characters";
+        }
+
+        if (!credentials.username) {
+            newErrors.username = "Username is required";
+        } else if (credentials.username.length < 2) {
+            newErrors.username = "Username must be at least 2 characters";
+        } else if (credentials.username.length > 30) {
+            newErrors.username = "Username must be less than 30 characters";
         }
 
         if (!credentials.email) {
@@ -99,6 +113,8 @@ export function RegisterForm() {
             setErrors({
                 general: getErrorMessage(result.error || "unknown-error"),
             });
+        } else {
+            router.push("/dashboard");
         }
     };
 
@@ -121,7 +137,9 @@ export function RegisterForm() {
                         placeholder="Enter your full name"
                         value={credentials.name}
                         onChange={handleChange("name")}
-                        className={`pl-10 border-2 ${errors.name ? "border-[#E41E26]" : "border-black"}`}
+                        className={`pl-10 border-2 ${
+                            errors.name ? "border-[#E41E26]" : "border-black"
+                        }`}
                         disabled={isLoading}
                         aria-invalid={!!errors.name}
                         aria-describedby={errors.name ? "name-error" : undefined}
@@ -139,6 +157,37 @@ export function RegisterForm() {
             </div>
 
             <div className="space-y-2">
+                <Label htmlFor="username" className="text-xs uppercase tracking-wide font-bold">
+                    Username
+                </Label>
+                <div className="relative">
+                    <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Input
+                        id="username"
+                        type="text"
+                        placeholder="Choose a username"
+                        value={credentials.username}
+                        onChange={handleChange("username")}
+                        className={`pl-10 border-2 ${
+                            errors.username ? "border-[#E41E26]" : "border-black"
+                        }`}
+                        disabled={isLoading}
+                        aria-invalid={!!errors.username}
+                        aria-describedby={errors.username ? "username-error" : undefined}
+                    />
+                    {errors.username && (
+                        <p
+                            id="username-error"
+                            className="text-xs text-[#E41E26] mt-1 flex items-center"
+                        >
+                            <AlertTriangle className="h-3 w-3 mr-1" />
+                            {errors.username}
+                        </p>
+                    )}
+                </div>
+            </div>
+
+            <div className="space-y-2">
                 <Label htmlFor="email" className="text-xs uppercase tracking-wide font-bold">
                     Email
                 </Label>
@@ -150,7 +199,9 @@ export function RegisterForm() {
                         placeholder="Enter your email"
                         value={credentials.email}
                         onChange={handleChange("email")}
-                        className={`pl-10 border-2 ${errors.email ? "border-[#E41E26]" : "border-black"}`}
+                        className={`pl-10 border-2 ${
+                            errors.email ? "border-[#E41E26]" : "border-black"
+                        }`}
                         disabled={isLoading}
                         aria-invalid={!!errors.email}
                         aria-describedby={errors.email ? "email-error" : undefined}
@@ -179,7 +230,9 @@ export function RegisterForm() {
                         placeholder="Create a password"
                         value={credentials.password}
                         onChange={handleChange("password")}
-                        className={`pl-10 border-2 ${errors.password ? "border-[#E41E26]" : "border-black"}`}
+                        className={`pl-10 border-2 ${
+                            errors.password ? "border-[#E41E26]" : "border-black"
+                        }`}
                         disabled={isLoading}
                         aria-invalid={!!errors.password}
                         aria-describedby={errors.password ? "password-error" : undefined}
@@ -211,7 +264,9 @@ export function RegisterForm() {
                         placeholder="Confirm your password"
                         value={credentials.confirmPassword}
                         onChange={handleChange("confirmPassword")}
-                        className={`pl-10 border-2 ${errors.confirmPassword ? "border-[#E41E26]" : "border-black"}`}
+                        className={`pl-10 border-2 ${
+                            errors.confirmPassword ? "border-[#E41E26]" : "border-black"
+                        }`}
                         disabled={isLoading}
                         aria-invalid={!!errors.confirmPassword}
                         aria-describedby={

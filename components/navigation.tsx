@@ -62,7 +62,7 @@ export default function Navigation() {
                     </Link>
                 </div>
 
-                {!user?.isAuthenticated ? (
+                {!user ? (
                     <div className="flex items-center gap-4 ml-auto">
                         <Button variant="ghost" className="uppercase text-xs tracking-wide" asChild>
                             <Link href="#features">Features</Link>
@@ -202,7 +202,7 @@ export default function Navigation() {
                                                 alt={user?.name}
                                             />
                                             <AvatarFallback className="bg-[#1C3F95] text-white">
-                                                {user?.name?.charAt(0)?.toUpperCase() || "U"}
+                                                {user?.username?.charAt(0)?.toUpperCase() || "U"}
                                             </AvatarFallback>
                                         </Avatar>
                                     </Button>
@@ -210,7 +210,7 @@ export default function Navigation() {
                                 <DropdownMenuContent className="w-56" align="end" forceMount>
                                     <div className="flex items-center justify-start gap-2 p-2">
                                         <div className="flex flex-col space-y-1 leading-none">
-                                            <p className="font-medium text-sm">{user?.name}</p>
+                                            <p className="font-medium text-sm">{user?.username}</p>
                                             <p className="w-[200px] truncate text-xs text-muted-foreground">
                                                 {user?.email}
                                             </p>

@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- Updated authentication system to use Prisma models and PostgreSQL database
+- Implemented secure password hashing with bcryptjs
+- Added database validation for tokens in middleware and auth services
+- Implemented Next.js middleware for route protection instead of client-side AuthGuard
+- Added token management utilities for better cookie handling (setAuthToken, removeAuthToken)
+- Created middleware.ts file with configurations for protected routes and authentication checks
+- Added auth-token.ts utility with validateToken function to verify JWT tokens in middleware
+- Implemented automatic redirects for authenticated and unauthenticated users at the routing level
+- Added automatic redirection from home page to dashboard for authenticated users in middleware
 - Implemented standardized API response utilities to ensure consistent JSON response format across all API endpoints
 - Created utility functions for success responses, error responses, and custom API responses with cookie and header support
 - Added type definitions for standard API response structure
@@ -20,6 +29,14 @@ All notable changes to this project will be documented in this file.
 - Added jose-based JWT token handling for better security and standardization
 
 ### Changed
+- Migrated authentication services from in-memory store to Prisma/PostgreSQL database
+- Enhanced middleware with proper JWT token validation instead of simple existence check
+- Added server-side redirection from home page to dashboard for authenticated users (moved from client-side to middleware)
+- Refactored middleware to use a public routes approach - all routes are protected by default except for explicitly listed public routes
+- Migrated from client-side route protection (AuthGuard) to server-side middleware for better performance and security
+- Removed AuthGuard component from the application layout
+- Updated home page to use client-side redirection for authenticated users
+- Updated auth context to use the new token management utilities
 - Simplified authentication state management to use only cookies instead of localStorage and sessionStorage
 - Refactored auth context to rely solely on server-side sessions through HTTP-only cookies
 - Updated all API calls to include credentials for consistent cookie handling
@@ -31,6 +48,7 @@ All notable changes to this project will be documented in this file.
 - Standardized API response format across all authentication endpoints to use { success: boolean, data: any } structure
 
 ### Fixed
+- Fixed login and register page access issues by adding them to public routes in middleware
 - Fixed authentication issues with protected routes by improving token verification and user lookup
 - Enhanced logout functionality to ensure complete session cleanup
 - Fixed logout API to properly clear cookies with correct parameters and paths
@@ -171,6 +189,9 @@ All notable changes to this project will be documented in this file.
 - Added input validation to prevent common security issues.
 - Implemented mock JWT token-based authentication as a foundation for proper server-side auth.
 - Added token format validation and expiration checks for improved security.
+- Added enhanced token validation function (validateTokenWithDb) for more secure authentication
+- Updated middleware to use the enhanced token validation for better security
+- Improved error handling and logging for authentication failures
 
 ### Performance
 - Reduced unnecessary re-renders in project components by using memoization and proper state management.
@@ -178,3 +199,10 @@ All notable changes to this project will be documented in this file.
 ### Accessibility
 - Added proper ARIA attributes to form inputs and validation errors.
 - Improved error messaging with visual indicators.
+
+### Deprecated
+- AuthGuard component is now deprecated. Please use AuthStateManager instead.
+
+### Documentation
+- Added comprehensive authentication system documentation in docs/authentication.md
+- Added test script for verifying the authentication flow

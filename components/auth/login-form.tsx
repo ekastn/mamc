@@ -24,15 +24,13 @@ export function LoginForm() {
         password?: string;
         general?: string;
     }>({});
-    
-    // Redirect if already logged in
+
     useEffect(() => {
-        if (user?.isAuthenticated) {
-            router.push('/');
+        if (user) {
+            router.push("/");
         }
     }, [user, router]);
 
-    // Map authentication errors to user-friendly messages
     const getErrorMessage = (error: AuthError): string => {
         switch (error) {
             case "invalid-credentials":
@@ -62,14 +60,12 @@ export function LoginForm() {
             password?: string;
         } = {};
 
-        // Check email
         if (!credentials.email) {
             newErrors.email = "Email is required";
         } else if (!validateEmail(credentials.email)) {
             newErrors.email = "Please enter a valid email address";
         }
 
-        // Check password
         if (!credentials.password) {
             newErrors.password = "Password is required";
         }
@@ -81,19 +77,16 @@ export function LoginForm() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        // Reset errors
         setErrors({});
 
-        // Validate form
         if (!validateForm()) {
             return;
         }
 
-        // Attempt login
         const result = await login(credentials);
 
         if (result.success) {
-            router.push('/');
+            router.push("/");
         } else {
             setErrors({
                 general: getErrorMessage(result.error || "unknown-error"),
@@ -107,17 +100,14 @@ export function LoginForm() {
         };
 
     const useDemoAccount = async (email: string, password: string) => {
-        // Set the credentials
         setCredentials({ email, password });
-        
-        // Reset any existing errors
+
         setErrors({});
-        
-        // Attempt login with the demo account
+
         const result = await login({ email, password });
-        
+
         if (result.success) {
-            router.push('/');
+            router.push("/");
         } else {
             setErrors({
                 general: getErrorMessage(result.error || "unknown-error"),
@@ -139,7 +129,9 @@ export function LoginForm() {
                         placeholder="Enter your email"
                         value={credentials.email}
                         onChange={handleChange("email")}
-                        className={`pl-10 border-2 ${errors.email ? "border-[#E41E26]" : "border-black"}`}
+                        className={`pl-10 border-2 ${
+                            errors.email ? "border-[#E41E26]" : "border-black"
+                        }`}
                         disabled={isLoading}
                         aria-invalid={!!errors.email}
                         aria-describedby={errors.email ? "email-error" : undefined}
@@ -168,7 +160,9 @@ export function LoginForm() {
                         placeholder="Enter your password"
                         value={credentials.password}
                         onChange={handleChange("password")}
-                        className={`pl-10 border-2 ${errors.password ? "border-[#E41E26]" : "border-black"}`}
+                        className={`pl-10 border-2 ${
+                            errors.password ? "border-[#E41E26]" : "border-black"
+                        }`}
                         disabled={isLoading}
                         aria-invalid={!!errors.password}
                         aria-describedby={errors.password ? "password-error" : undefined}

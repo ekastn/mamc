@@ -3,7 +3,6 @@
 import type React from "react";
 import { createContext, useContext, useState, useEffect } from "react";
 import type { AuthUser, LoginCredentials, RegisterCredentials } from "@/lib/types";
-import { generateId } from "@/lib/utils";
 import { validateLoginInput, validateRegisterInput } from "@/lib/validations/auth-validation";
 
 // Define error types for authentication
@@ -53,13 +52,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                     
                     const authUser: AuthUser = {
                         id: userData.data.id,
-                        name: userData.data.name,
+                        username: userData.data.username,
                         email: userData.data.email,
-                        avatar: userData.data.avatar || "/placeholder-user.jpg",
-                        isAuthenticated: true,
                     };
                     
-                    // Update React state with user data
                     setUser(authUser);
                 } else {
                     const errorData = await response.json();
@@ -142,13 +138,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             // Create auth user from response data
             const authUser: AuthUser = {
                 id: data.data.id,
-                name: data.data.name,
+                username: data.data.username,
                 email: data.data.email,
-                avatar: data.data.avatar || "/placeholder-user.jpg",
-                isAuthenticated: true,
             };
 
-            // Update React state with user data
             setUser(authUser);
             setIsLoading(false);
             return { success: true };
@@ -165,7 +158,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setIsLoading(true);
 
         try {
-            // Validate input using our validation function
             const validationResult = validateRegisterInput(credentials);
             if (!validationResult.success) {
                 setIsLoading(false);
@@ -178,7 +170,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                credentials: 'include', // Include credentials to ensure cookies are handled
+                credentials: 'include',
                 body: JSON.stringify(credentials),
             });
 
@@ -187,7 +179,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             if (!response.ok) {
                 setIsLoading(false);
                 
-                // Map the API error to our AuthError type
                 let errorType: AuthError = "unknown-error";
                 
                 if (data.error === "Email already in use") {
@@ -203,13 +194,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 return { success: false, error: errorType };
             }
 
-            // Create auth user from response data
             const authUser: AuthUser = {
                 id: data.data.id,
-                name: data.data.name,
+                username: data.data.username,
                 email: data.data.email,
-                avatar: data.data.avatar || "/placeholder-user.jpg",
-                isAuthenticated: true,
             };
 
             // Update React state with user data
@@ -230,10 +218,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                credentials: 'include', // Important: include credentials to ensure cookies are sent and can be cleared
-                cache: 'no-store' // Prevent caching of this request
+                credentials: 'include', 
+                cache: 'no-store' 
             });
-
+            
             setUser(null);
             window.location.href = '/login';
             return true;

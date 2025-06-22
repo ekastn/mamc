@@ -1,5 +1,11 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import {
@@ -110,9 +116,9 @@ export default function LandingPage() {
                                 With Heart
                             </h1>
                             <p className="text-xl text-muted-foreground leading-relaxed">
-                                The first music collaboration platform that understands emotions.
-                                Connect with artists worldwide, share your feelings through music,
-                                and create something beautiful together.
+                                The first music collaboration platform that understands
+                                emotions. Connect with artists worldwide, share your feelings
+                                through music, and create something beautiful together.
                             </p>
                         </div>
 
@@ -122,8 +128,12 @@ export default function LandingPage() {
                                 className="bg-[#E41E26] hover:bg-[#E41E26]/90 text-white uppercase text-sm tracking-wide px-8 py-6"
                                 asChild
                             >
-                                <Link href="/auth/register" className="flex items-center gap-2">
-                                    Start Creating <ArrowRight className="h-5 w-5" />
+                                <Link
+                                    href="/auth/register"
+                                    className="flex items-center gap-2"
+                                >
+                                    Start Creating{" "}
+                                    <ArrowRight className="h-5 w-5" />
                                 </Link>
                             </Button>
                             <Button
@@ -223,11 +233,12 @@ export default function LandingPage() {
                 <div className="container mx-auto px-4">
                     <div className="text-center space-y-4 mb-16">
                         <h2 className="text-4xl font-bold uppercase tracking-wide">
-                            Why Choose <span className="text-[#E41E26]">Harmonic</span>?
+                            Why Choose{" "}
+                            <span className="text-[#E41E26]">Harmonic</span>?
                         </h2>
                         <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-                            We're not just another music platform. We understand that music is
-                            emotional, and collaboration should be too.
+                            We're not just another music platform. We understand that music
+                            is emotional, and collaboration should be too.
                         </p>
                     </div>
 
@@ -263,7 +274,8 @@ export default function LandingPage() {
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
                         <div className="space-y-8">
                             <h2 className="text-4xl font-bold uppercase tracking-wide">
-                                Built for <span className="text-[#1C3F95]">Modern</span> Musicians
+                                Built for{" "}
+                                <span className="text-[#1C3F95]">Modern</span> Musicians
                             </h2>
                             <div className="space-y-6">
                                 {benefits.map((benefit, index) => (
@@ -320,8 +332,8 @@ export default function LandingPage() {
                             Ready to Create Something Amazing?
                         </h2>
                         <p className="text-xl text-white/90">
-                            Join thousands of artists who are already collaborating and creating
-                            music with heart.
+                            Join thousands of artists who are already collaborating and
+                            creating music with heart.
                         </p>
                         <div className="flex flex-col sm:flex-row gap-4 justify-center">
                             <Button
@@ -329,7 +341,7 @@ export default function LandingPage() {
                                 className="bg-white text-[#E41E26] hover:bg-white/90 uppercase text-sm tracking-wide px-8 py-6"
                                 asChild
                             >
-                                <Link href="/auth/register">Start Free Today</Link>
+                                <Link href="/register">Start Free Today</Link>
                             </Button>
                             <Button
                                 size="lg"
@@ -337,7 +349,7 @@ export default function LandingPage() {
                                 className="border-2 border-white text-white hover:bg-white hover:text-[#E41E26] uppercase text-sm tracking-wide px-8 py-6"
                                 asChild
                             >
-                                <Link href="/auth/login">Already Have Account?</Link>
+                                <Link href="/login">Already Have Account?</Link>
                             </Button>
                         </div>
                     </div>

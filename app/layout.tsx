@@ -4,7 +4,6 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/context/auth-context";
-import { AuthGuard } from "@/components/auth/auth-guard";
 import Navigation from "@/components/navigation";
 import { Toaster } from "@/components/ui/toaster";
 
@@ -32,9 +31,7 @@ export default function RootLayout({
                     <AuthProvider>
                         <div className="container flex min-h-screen flex-col">
                             <Navigation />
-                            <AuthGuard>
-                                <main className="flex-1">{children}</main>
-                            </AuthGuard>
+                            <main className="flex-1">{children}</main>
                         </div>
                     </AuthProvider>
                     <Toaster />

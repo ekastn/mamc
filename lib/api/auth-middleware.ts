@@ -1,6 +1,8 @@
 import { NextRequest } from "next/server";
 import * as jose from 'jose';
+import * as bcrypt from 'bcryptjs';
 import { z } from 'zod';
+import prisma from "@/lib/prisma";
 
 // Secret key for JWT (in production, use environment variables)
 const JWT_SECRET = process.env.JWT_SECRET || "harmonic-dev-secret-key";
@@ -13,7 +15,7 @@ const secretKey = new Uint8Array(textEncoder.encode(JWT_SECRET));
 export const tokenPayloadSchema = z.object({
   userId: z.string(),
   email: z.string().email(),
-  name: z.string().optional(),
+  username: z.string().optional(),
   iat: z.number().optional(),
   exp: z.number().optional(),
 });
@@ -90,24 +92,19 @@ export async function createToken(payload: Omit<TokenPayload, 'iat' | 'exp'>, ex
 }
 
 /**
- * Hashes a password (in a real app, use bcrypt or argon2)
- * This is a simple implementation for demo purposes
+ * Hashes a password using bcrypt
  */
 export function hashPassword(password: string): string {
-  // In a real app, use bcrypt or argon2
-  // For demo purposes, we'll use a simple hash
-  // DO NOT USE THIS IN PRODUCTION
-  return Buffer.from(password + "harmonic-salt").toString("base64");
+  // Use a salt rounds of 10 for good security/performance balance
+  const salt = bcrypt.genSaltSync(10);
+  return bcrypt.hashSync(password, salt);
 }
 
 /**
- * Verifies a password against a hash
+ * Verifies a password against a hash using bcrypt
  */
 export function verifyPassword(password: string, hash: string): boolean {
-  // In a real app, use bcrypt or argon2
-  // For demo purposes, we'll use a simple hash comparison
-  const hashedInput = Buffer.from(password + "harmonic-salt").toString("base64");
-  return hashedInput === hash;
+  return bcrypt.compareSync(password, hash);
 }
 
 /**
@@ -140,5 +137,46 @@ export async function debugToken(token: string): Promise<void> {
     
   } catch (error) {
     console.error("[AuthMiddleware] Error debugging token:", error);
+  }
+}
+
+/**
+ * Enhanced token validation that:
+ * 1. Verifies the JWT cryptographically
+ * 2. Checks if the user exists in the database
+ * 3. Optionally validates additional security claims
+ */
+export async function validateTokenWithDb(token: string, options: { 
+  checkUserExists?: boolean; 
+  checkLastPasswordChange?: boolean;
+} = {}): Promise<TokenPayload | null> {
+  try {
+    // First verify the token cryptographically
+    const payload = await verifyToken(token);
+    
+    if (!payload || !payload.userId) {
+      console.log("[AuthMiddleware] Invalid token payload");
+      return null;
+    }
+    
+    // Check if the user exists in the database (if requested)
+    if (options.checkUserExists !== false) {
+      const user = await prisma.user.findUnique({
+        where: { id: payload.userId }
+      });
+      
+      if (!user) {
+        console.log(`[AuthMiddleware] User not found for token: ${payload.userId}`);
+        return null;
+      }
+    }
+    
+    // Add additional security checks here as needed
+    // Example: check if the user has changed password since token was issued
+    
+    return payload;
+  } catch (error) {
+    console.error("[AuthMiddleware] Token validation error:", error);
+    return null;
   }
 }

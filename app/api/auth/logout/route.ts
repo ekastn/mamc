@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { errorResponse } from "@/lib/api/api-response";
 import { z } from 'zod';
 
-// Define response schema using Zod
 const logoutResponseSchema = z.object({
   success: z.boolean(),
   data: z.object({
@@ -12,14 +11,15 @@ const logoutResponseSchema = z.object({
 
 export async function POST(req: NextRequest) {
   try {
+    const hasAuthToken = !!req.cookies.get("auth-token");
+    
     const responseData = logoutResponseSchema.parse({
       success: true,
       data: {
-        message: "Logged out successfully"
+        message: hasAuthToken ? "Logged out successfully" : "No active session found"
       }
     });
     
-    // Create a direct NextResponse for more control over cookie clearing
     const response = NextResponse.json(
       responseData,
       { 
@@ -32,14 +32,13 @@ export async function POST(req: NextRequest) {
       }
     );
     
-    // Explicitly clear the auth-token cookie
     response.cookies.delete("auth-token");
     
     // As a fallback, also set an expired cookie with the same name
     response.cookies.set({
       name: "auth-token",
       value: "",
-      expires: new Date(0), // Set to epoch time (1970-01-01)
+      expires: new Date(0), 
       path: "/",
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
